@@ -107,4 +107,18 @@ describe('Models', function(){
 
   });
 
+  describe('#collapse()', function(){
+
+    it('should collapse a single child object to just a key', function(done){
+      friendly.expand('book', BOOKS[0]).then(function(expandedObject){
+        var collapsed = friendly.collapse('book', expandedObject);
+        collapsed.author.should.not.have.property('name');
+        collapsed.author.should.have.property(authorModel.key, AUTHORS[0][authorModel.key]);
+        done();
+      })
+      .catch(done);
+    });
+
+  });
+
 });

@@ -106,10 +106,12 @@ function expand(name, data, cacheBucket){
             return promise;
           };
 
+          // is the child an array of children objects or a single object?
           if( _.isArray(childKey) ){
             data[prop] = [];
-            _.forEach(childKey, function(c){
-              var foreignKey = getKeyValue(c);
+            // if its an array, then fetch and map each inner child object
+            _.forEach(childKey, function(innerChild){
+              var foreignKey = getKeyValue(innerChild);
 
               childPromises.push(
 
@@ -146,14 +148,32 @@ function expand(name, data, cacheBucket){
     });
 
     if(!promises.length) return resolve(data);
-
     Q.all(promises).spread(function(){resolve(data);}, reject);
 
   });
 }
 
+function collapse(name, data){
+
+  var model = getModel(name);
+
+  if(!data) throw new Error('no object was provided to collapse');
+
+  _.forEach(model.children, function(child){
+    if(data.hasOwnProperty(child)){
+      var childModel = getModel(child);
+      var collapsedProperties = [childModel.key];
+      if(childModel.collapsables.length) collapsedProperties = collapsedProperties.concat(childModel.collapsables);
+      data[child] = _.pick(data[child], collapsedProperties);
+    }
+  });
+
+  return data;
+}
+
 module.exports = {
   createModel: createModel,
   getModel: getModel,
-  expand: expand
+  expand: expand,
+  collapse: collapse
 };
