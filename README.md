@@ -179,3 +179,4 @@ var book = {
 - When passing an array of parent objects to expand, the first time a child is resolved it is cached incase another object in the array also uses the same child. The cache only lasts per call to expand, but this may provide unintended effects if a document changes during the call to expand 99% of the time this won't be an issue at all.
 - There is no deep recursion to child objects. That is, if the child object also contains it's own children then will not be resolved. To accomplish this, you can manually add an expand call to your child's provider.
 - Friendly is currently global and createModel can only be called once per model name per application instance.
+- Collapsing will always transform the child into a single object with the foreign key property, and any optional collapsables you've set.
