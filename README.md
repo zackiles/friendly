@@ -12,7 +12,7 @@ $ npm install friendly
 
 ## Overview
 
-Only two methods EXPAND and COLLAPSE. Both methods work on a single parent object or an array of parent objects with nested children. A child property can be a foreign key, an object with a foreign key, or an array of either.
+Two primary methods, EXPAND and COLLAPSE. Both methods work on a single parent object or an array of parent objects with nested children. A child property can be a foreign key, an object with a foreign key, or an array of either.
 
 - Expand => Like the mongoose 'populate' method. Will resolve nested children to their sources and map in a full or partial object.
 - Collapse => Reduces a parent objects children into a minimal representation. Default is just the foreign key, but you can configure it to add any other properties you'd like.
@@ -68,7 +68,7 @@ friendly.createModel({
 });
 ```
 
-Putting it all together and expanding our book with authors it would look like this:
+Putting it all together and expanding/collapsing our book with authors would look like this:
 
 ``` js
 var friendly = require('friendly');
@@ -104,8 +104,8 @@ var exampleBook = {
 };
 
 
-friendly.expand('book', exampleBook).then(function(results){
-  console.log(results);
+friendly.expand('book', exampleBook).then(function(expandedBook){
+  console.log(expandedBook);
   /** prints
     {
       id: '203',
@@ -114,6 +114,54 @@ friendly.expand('book', exampleBook).then(function(results){
         id: '19237',
         name: 'Steve McConnel'
       }
-  }/*
+    }
+  /*
+  var collapsedBook = friendly.expand('book', expandedBook);
+  console.log(collapsedBook);
+  /** prints
+    {
+      id: '203',
+      name: 'Code Complete 2',
+      author: '19237'
+    }
+  /*
 });
+```
+
+### How many ways can I represent a child object?
+
+4 ways. Pay attention to how the author object changes in these examples
+
+``` js
+
+// #1 - author as a value
+var book = {
+  id: '203',
+  name: 'Code Complete 2',
+  author: '19237'
+};
+// #2 - author as an object
+var book = {
+  id: '203',
+  name: 'Code Complete 2',
+  author: {
+    id: '19237'
+  }
+};
+// #3 - multiple authors as an array
+var book = {
+  id: '203',
+  name: 'Code Complete 2',
+  author: ['19237', '2462']
+};
+// #4 - multiple authors as an object array
+var book = {
+  id: '203',
+  name: 'Code Complete 2',
+  author: [
+    { id: '19237' },
+    { id: '2462' },
+  ]
+};
+
 ```
