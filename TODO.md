@@ -1,0 +1,3 @@
+- Refactor expand method to move as much code as possible out of the forEach loop. Looking a bit caveman right now.
+- Add expandables configuration property to give the ability to choose what properties will be included in expanded children.
+- Work in a constructor or a way to change model post configuration.
