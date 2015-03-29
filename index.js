@@ -33,8 +33,9 @@ function createModel(config){
       _.forEach(arr, function(a){
         if( !_.isString(a) ) throw new Error(type + ' must be an array of strings');
       });
+      return _.uniq(arr);
     }else if( _.isString(arr) ){
-      return [arr];
+      return _.uniq([arr]);
     }else{
       return [];
     }
@@ -163,8 +164,19 @@ function collapse(name, data){
     if(data.hasOwnProperty(child)){
       var childModel = getModel(child);
       var collapsedProperties = [childModel.key];
+
       if(childModel.collapsables.length) collapsedProperties = collapsedProperties.concat(childModel.collapsables);
-      data[child] = _.pick(data[child], collapsedProperties);
+
+      if( _.isArray(data[child]) ){
+        var childArray = [];
+        _.forEach(data[child], function(c){
+          childArray.push(_.pick(c, collapsedProperties));
+        });
+        data[child] = childArray;
+      }else{
+        data[child] = _.pick(data[child], collapsedProperties);
+      }
+
     }
   });
 
