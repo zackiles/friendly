@@ -137,7 +137,7 @@ describe('Models', function(){
       .catch(done);
     });
 
-    it('should expand a multiple types of children in one object', function(done){
+    it('should expand multiple types of children in one object', function(done){
       friendly.expand('book', BOOKS[3]).then(function(expandedObject){
         expandedObject.author.should.have.property('name', AUTHORS[1].name);
         expandedObject.publisher.should.have.property('name', PUBLISHERS[0].name);
@@ -155,6 +155,18 @@ describe('Models', function(){
         var collapsed = friendly.collapse('book', expandedObject);
         collapsed.author.should.not.have.property('name');
         collapsed.author.should.have.property(authorModel.key, AUTHORS[0][authorModel.key]);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('should collapse multiple types of children in one object', function(done){
+      friendly.expand('book', BOOKS[3]).then(function(expandedObject){
+        var collapsed = friendly.collapse('book', expandedObject);
+        collapsed.author.should.not.have.property('name');
+        collapsed.author.should.have.property(authorModel.key, AUTHORS[1][authorModel.key]);
+        collapsed.publisher.should.not.have.property('name');
+        collapsed.publisher.should.have.property(publisherModel.key, PUBLISHERS[0][publisherModel.key]);
         done();
       })
       .catch(done);
