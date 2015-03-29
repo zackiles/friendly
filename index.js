@@ -57,6 +57,13 @@ function expand(name, data){
   return Q.Promise(function(resolve, reject) {
 
     var model = getModel(name);
+    var instanceCache = {};
+
+    var addToCache = function(currentCache, key, item){
+      if(!currentCache) currentCache = {};
+      currentCache.key = item[key];
+      currentCache.data = item;
+    };
 
     if(!data) return reject(new Error('no object was provided to expand'));
 
@@ -70,6 +77,7 @@ function expand(name, data){
 
         var childModel = MODELS[prop];
         var childValue = data[prop];
+        var currentCache = instanceCache[childModel.name];
 
         if(childModel && childValue){
           // can resolve a single child or an array of children
@@ -79,25 +87,35 @@ function expand(name, data){
             return _.isObject(item) ? item[childModel.key] : item;
           };
 
-          if( _.isArray(childValue) ){
+          var getChildProviderPromise = function(keyValue){
+            if(currentCache && currentCache.key[keyValue]){
+              return Q.resolve(currentCache.data);
+            }else{
+              return childModel.provider(keyValue);
+            }
+          };
 
+          if( _.isArray(childValue) ){
             data[prop] = [];
             _.forEach(childValue, function(c){
-              var keyValue = keyOrValue(c);
-              var childPromise = childModel.provider(keyValue).then(function(results){
-                if(results) data[prop].push(results);
-              });
-              childPromises.push(childPromise);
+              childPromises.push(
+                getChildProviderPromise( keyOrValue(c) ).then(function(results){
+                  if(results){
+                    addToCache(currentCache, childModel.key, results);
+                    data[prop].push(results);
+                  };
+                })
+              );
             });
-
           }else{
-
-            var keyValue = keyOrValue(childValue);
-            var childPromise = childModel.provider(keyValue).then(function(results){
-              if(results) data[prop] = results;
-            });
-            childPromises.push(childPromise);
-
+            childPromises.push(
+              getChildProviderPromise( keyOrValue(childValue) ).then(function(results){
+                if(results){
+                  addToCache(currentCache, childModel.key, results);
+                  data[prop] = results;
+                };
+              })
+            );
           }
 
           if(childPromises.length) promises = promises.concat(childPromises);
