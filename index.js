@@ -8,12 +8,14 @@ var MODELS = {};
 function CacheBucket(){
   this.list = {};
 }
+
 CacheBucket.prototype.add = function(index, key, data){
   var cached = this.get(index, key);
   if(cached) return;
   if(!this.list[index]) this.list[index] = [];
   this.list[index].push({ key: key, data: data});
 };
+
 CacheBucket.prototype.get = function(index, key){
   if(!this.list[index]) return null;
   return _.find(this.list[index], {key: key});
@@ -57,6 +59,10 @@ function createModel(config){
 
 function expandMany(model, data){
   return Q.Promise(function(resolve, reject) {
+
+    // create a per instance cache bucket so we don't call the provider
+    // for the same object multiple times. could cause issues if this
+    // data is later used to write with, but relatively low chance.
     var cacheBucket = new CacheBucket();
 
     var promises = _.map(data, function(d){
@@ -77,7 +83,7 @@ function expand(name, data, cacheBucket){
 
     if(!data) return reject(new Error('no object was provided to expand'));
 
-    // we can pass an array of models or a single model
+    // we can pass an array of objects to expand or a single object
     if( _.isArray(data) ) return resolve(expandMany(model, data));
 
     var promises = [];
@@ -110,7 +116,7 @@ function expand(name, data, cacheBucket){
           // is the child an array of children objects or a single object?
           if( _.isArray(childKey) ){
             data[prop] = [];
-            // if its an array, then fetch and map each inner child object
+            // if its an array, then recursively fetch and map each inner child object
             _.forEach(childKey, function(innerChild){
               var foreignKey = getKeyValue(innerChild);
 
@@ -165,6 +171,8 @@ function collapse(name, data){
       var childModel = getModel(child);
       var collapsedProperties = [childModel.key];
 
+      // default is to always add the model key property, and then any
+      // user configured collapsables for this child model.
       if(childModel.collapsables.length) collapsedProperties = collapsedProperties.concat(childModel.collapsables);
 
       if( _.isArray(data[child]) ){
