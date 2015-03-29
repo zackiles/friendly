@@ -10,6 +10,14 @@ You know the drill.
 $ npm install friendly
 ```
 
+## Use Case
+
+- You have documents with one-to-many or one-to-one relationships coming from different databases or sources and would like to quickly compose complete objects.
+- You'd like to keep your code clean and have seperation of concerns between your services.
+- You don't have the ability to do database joins or link documents.
+- You want to avoid using bloated database specific ORM's.
+- You want to add the ability to expand and collapse resources on your API or services.
+
 ## Overview
 
 Two primary methods, EXPAND and COLLAPSE. Both methods work on a single parent object or an array of parent objects with nested children. A child property can be a foreign key, an object with a foreign key, or an array of either.
