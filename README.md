@@ -43,10 +43,12 @@ Book: {
 
 ### Examples?
 
-First configure your models for later use. Configuration takes a name, provider, key, and a child name/array of child names.
+First configure your models for later use. Configuration takes a name, provider, children, and optional collapsables.
 
-- A key the foreign key, or property name used to resolve a unique object.
-- A provider is simply a function that returns a promise that resolves the object given a single paramater specified by the key.
+- key (optional default 'id') is the foreign key, or property name used to resolve a unique object. If a key is not used children properites must either be the key themselves, or equal an object which contains an 'id' property
+- children is an array or single property name of the child object. The property value can be the foreign key itself, an array of foreign keys, or an object ontaining a property matching the property name supplied with 'key'.
+- provider is a function which is passed the foreign key, which returns a promise that resolves the full child object.
+- collapsables (optional) an array of properties that will be included when using the collapse function. By default the property specified by key is always inlcuded.
 
 So given a Book model that has an id property, with a nested author child, or method call would look like this:
 
@@ -56,10 +58,11 @@ var friendly = require('friendly');
 friendly.createModel({
   name: 'book',
   key: 'id',
+  collapsables: ['title', 'publishedDate'],
   children: 'author', // or ['author', 'category']
   provider: function(id){
     // return a promise that finds the book
-    return findBooksPromise(id);
+    return findBooksByIdPromise(id);
   }
 });
 ```
