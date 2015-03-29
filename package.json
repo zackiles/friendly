@@ -1,0 +1,32 @@
+{
+  "name": "friendly",
+  "version": "0.0.1",
+  "description": "Make relationships, link data, and build streams with plain old javascript objects. An ORM without database drivers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zackiles/friendly"
+  },
+  "keywords": [
+    "orm",
+    "object",
+    "releationship",
+    "mapping",
+    "streams"
+  ],
+  "author": "Zachary Iles <zack.iles@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zackiles/friendly/issues"
+  },
+  "homepage": "https://github.com/zackiles/friendly",
+  "dependencies": {
+    "lodash": "^3.6.0",
+    "mocha": "^2.2.1",
+    "q": "^1.2.0",
+    "should": "^5.2.0"
+  }
+}
