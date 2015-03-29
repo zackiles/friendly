@@ -58,7 +58,7 @@ var friendly = require('friendly');
 friendly.createModel({
   name: 'book',
   key: 'id',
-  collapsables: ['title', 'publishedDate'],
+  collapsables: 'title', // or ['title', 'publishedDate']
   children: 'author', // or ['author', 'category']
   provider: function(id){
     // return a promise that finds the book

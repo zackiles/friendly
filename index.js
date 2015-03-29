@@ -58,7 +58,7 @@ function expand(name, data){
     var model = getModel(name);
 
     // we can pass an array of models or a single model
-    if( _.isArray(model) ) return expandMany(model, data);
+    if( _.isArray(data) ) return resolve(expandMany(model, data));
 
     var promises = [];
 
@@ -73,7 +73,7 @@ function expand(name, data){
         if(key && _.isObject(toExpand) && toExpand[key]) keyValue = toExpand[key];
         if(_.isString(toExpand) || _.isNumber(toExpand)) keyValue = toExpand;
 
-        promises.push(model.provider(keyValue).then(function(results){
+        promises.push(MODELS[prop].provider(keyValue).then(function(results){
           data[prop] = results;
         }));
       }
