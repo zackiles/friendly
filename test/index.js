@@ -21,6 +21,16 @@ var BOOKS = [
     id: 3,
     name: 'Multi Authored Book',
     author: [19237, 16030]
+  },
+  {
+    id: 4,
+    name: 'Book With Author & Publisher',
+    author: {
+      id: 16030
+    },
+    publisher: {
+      id: 23687
+    }
   }
 ];
 
@@ -35,10 +45,21 @@ var AUTHORS = [
   }
 ];
 
+var PUBLISHERS = [
+  {
+    id: 23687,
+    name: 'White House Publishing'
+  },
+  {
+    id: 3456,
+    name: 'Dream Factory Publishing'
+  }
+];
+
 var bookModel = {
   name: 'book',
   key: 'id',
-  children: 'author',
+  children: ['author', 'publisher'],
   provider: function(id){
     return Q.Promise(function(resolve, reject) {
       resolve(_.find(BOOKS, {id: id}));
@@ -57,6 +78,17 @@ var authorModel = {
   }
 };
 friendly.createModel(authorModel);
+
+var publisherModel = {
+  name: 'publisher',
+  key: 'id',
+  provider: function(id){
+    return Q.Promise(function(resolve, reject) {
+      resolve(_.find(PUBLISHERS, {id: id}));
+    });
+  }
+};
+friendly.createModel(publisherModel);
 
 describe('Models', function(){
 
@@ -100,6 +132,15 @@ describe('Models', function(){
         expandedObject.should.have.property('author').with.lengthOf(BOOKS[2].author.length);
         var author = _.find(AUTHORS, {id: expandedObject.author[0].id});
         if(!_.isObject(author)) return done(new Error('object is missing a matching child'));
+        done();
+      })
+      .catch(done);
+    });
+
+    it('should expand a multiple types of children in one object', function(done){
+      friendly.expand('book', BOOKS[3]).then(function(expandedObject){
+        expandedObject.author.should.have.property('name', AUTHORS[1].name);
+        expandedObject.publisher.should.have.property('name', PUBLISHERS[0].name);
         done();
       })
       .catch(done);
