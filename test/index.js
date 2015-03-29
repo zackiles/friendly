@@ -45,6 +45,8 @@ var bookModel = {
     });
   }
 };
+friendly.createModel(bookModel);
+
 var authorModel = {
   name: 'author',
   key: 'id',
@@ -54,13 +56,13 @@ var authorModel = {
     });
   }
 };
+friendly.createModel(authorModel);
 
 describe('Models', function(){
 
   describe('#createModel()', function(){
 
     it('should create a model', function(done){
-      friendly.createModel(bookModel);
       var model = friendly.getModel(bookModel.name);
       model.should.have.property('name', bookModel.name);
       done();
@@ -76,10 +78,7 @@ describe('Models', function(){
   describe('#expand()', function(){
 
     it('should expand a single object', function(done){
-      friendly.createModel(bookModel);
-      friendly.createModel(authorModel);
       friendly.expand('book', BOOKS[0]).then(function(expandedObject){
-        console.log(expandedObject);
         expandedObject.author.should.have.property('name', AUTHORS[0].name);
         done();
       })
@@ -87,11 +86,7 @@ describe('Models', function(){
     });
 
     it('should expand a collection of objects', function(done){
-      friendly.createModel(bookModel);
-      friendly.createModel(authorModel);
-
       var models = [ BOOKS[0], BOOKS[1] ];
-
       friendly.expand('book', models).then(function(expandedObjects){
         expandedObjects[0].author.should.have.property('name', AUTHORS[0].name);
         expandedObjects[1].author.should.have.property('name', AUTHORS[1].name);
@@ -101,14 +96,10 @@ describe('Models', function(){
     });
 
     it('should expand an array of children keys', function(done){
-      friendly.createModel(bookModel);
-      friendly.createModel(authorModel);
-
       friendly.expand('book', BOOKS[2]).then(function(expandedObject){
         expandedObject.should.have.property('author').with.lengthOf(BOOKS[2].author.length);
         var author = _.find(AUTHORS, {id: expandedObject.author[0].id});
         if(!_.isObject(author)) return done(new Error('object is missing a matching child'));
-
         done();
       })
       .catch(done);
