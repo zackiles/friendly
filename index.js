@@ -9,6 +9,8 @@ function CacheBucket(){
   this.list = {};
 }
 CacheBucket.prototype.add = function(index, key, data){
+  var cached = this.get(index, key);
+  if(cached) return;
   if(!this.list[index]) this.list[index] = [];
   this.list[index].push({ key: key, data: data});
 };
@@ -108,24 +110,32 @@ function expand(name, data, cacheBucket){
             data[prop] = [];
             _.forEach(childValue, function(c){
               var foreignKey = keyOrValue(c);
+
               childPromises.push(
-                getChildProviderPromise( foreignKey ).then(function(results){
+
+                getChildProviderPromise( foreignKey )
+                .then(function(results){
                   if(results){
                     if(cacheBucket) cacheBucket.add(childModel.name, foreignKey, results);
                     data[prop].push(results);
                   }
                 })
+
               );
             });
           }else{
             var foreignKey = keyOrValue(childValue);
+
             childPromises.push(
-              getChildProviderPromise( foreignKey ).then(function(results){
+
+              getChildProviderPromise( foreignKey )
+              .then(function(results){
                 if(results){
                   if(cacheBucket) cacheBucket.add(childModel.name, foreignKey, results);
                   data[prop] = results;
                 }
               })
+
             );
           }
 
