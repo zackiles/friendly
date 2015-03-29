@@ -85,13 +85,13 @@ function expand(name, data, cacheBucket){
       if(data.hasOwnProperty(prop)){
 
         var childModel = MODELS[prop];
-        var childValue = data[prop];
+        var childKey = data[prop];
 
-        if(childModel && childValue){
+        if(childModel && childKey){
           // can resolve a single child or an array of children
           var childPromises = [];
 
-          var keyOrValue = function(item){
+          var getKeyValue = function(item){
             return _.isObject(item) ? item[childModel.key] : item;
           };
 
@@ -106,10 +106,10 @@ function expand(name, data, cacheBucket){
             return promise;
           };
 
-          if( _.isArray(childValue) ){
+          if( _.isArray(childKey) ){
             data[prop] = [];
-            _.forEach(childValue, function(c){
-              var foreignKey = keyOrValue(c);
+            _.forEach(childKey, function(c){
+              var foreignKey = getKeyValue(c);
 
               childPromises.push(
 
@@ -124,7 +124,7 @@ function expand(name, data, cacheBucket){
               );
             });
           }else{
-            var foreignKey = keyOrValue(childValue);
+            var foreignKey = getKeyValue(childKey);
 
             childPromises.push(
 
