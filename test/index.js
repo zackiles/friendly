@@ -9,6 +9,13 @@ var BOOKS = [
     id: 1,
     name: 'Code Complete 2',
     author: 19237
+  },
+  {
+    id: 2,
+    name: 'Code Complete 3',
+    author: {
+      id: 19237
+    }
   }
 ];
 var AUTHORS = [
@@ -61,17 +68,18 @@ describe('Models', function(){
       friendly.createModel(bookModel);
       friendly.createModel(authorModel);
       friendly.expand('book', BOOKS[0]).then(function(expandedObject){
+        console.log(expandedObject);
         expandedObject.author.should.have.property('name', AUTHORS[0].name);
         done();
       })
       .catch(done);
     });
 
-    it('should expand an array of objects', function(done){
+    it('should expand an array of children keys', function(done){
       friendly.createModel(bookModel);
       friendly.createModel(authorModel);
 
-      var models = [ BOOKS[0], BOOKS[0] ];
+      var models = [ BOOKS[0], BOOKS[1] ];
 
       friendly.expand('book', models).then(function(expandedObjects){
         expandedObjects[0].author.should.have.property('name', AUTHORS[0].name);

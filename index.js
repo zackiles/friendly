@@ -66,17 +66,41 @@ function expand(name, data){
     _.forEach(model.children, function(prop){
       if(data.hasOwnProperty(prop)){
 
-        var toExpand = data[prop];
-        var key = MODELS[prop].key;
-        var keyValue;
+        var childModel = MODELS[prop];
+        var childValue = data[prop];
 
-        // check if the nested child is just a foreign key or an object with a foreign key
-        if(key && _.isObject(toExpand) && toExpand[key]) keyValue = toExpand[key];
-        if(_.isString(toExpand) || _.isNumber(toExpand)) keyValue = toExpand;
+        if(childModel && childValue){
+          // can resolve a single child or an array of children
+          var childPromises = [];
 
-        promises.push(MODELS[prop].provider(keyValue).then(function(results){
-          data[prop] = results;
-        }));
+          var keyOrValue = function(item){
+            return _.isObject(item) ? item[childModel.key] : item;
+          };
+
+          if( _.isArray(childValue) ){
+
+            data[prop] = [];
+            _.forEach(childValue, function(c){
+              var keyValue = keyOrValue(c);
+              var childPromise = childModel.provider(keyValue).then(function(results){
+                if(results) data[prop].push(results);
+              });
+              childPromises.push(childPromise);
+            });
+
+          }else{
+
+            var keyValue = keyOrValue(childValue);
+            var childPromise = childModel.provider(keyValue).then(function(results){
+              if(results) data[prop] = results;
+            });
+            childPromises.push(childPromise);
+
+          }
+
+          if(childPromises.length) promises = promises.concat(childPromises);
+        }
+
       }
     });
 
