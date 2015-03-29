@@ -130,7 +130,7 @@ friendly.expand('book', exampleBook).then(function(expandedBook){
 
 ### How many ways can I represent a child object?
 
-4 ways. Pay attention to how the author object changes in these examples
+4 ways. Pay attention to how the author object changes in these examples. These are assuming you've created both a book and author model, and the author models key is set to 'id'.
 
 ``` js
 
