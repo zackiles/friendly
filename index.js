@@ -27,13 +27,14 @@ function createModel(config){
   };
   if( !config.name ) throw new Error('a model name was not provided');
   if( !config.provider ) throw new Error('a model provider was not provided');
+  if( !config.key ) throw new Error('a model key was not provided');
   if( !_.isFunction(config.provider) ) throw new Error('a model provider must be a function');
 
   MODELS[config.name] = {
     name: config.name,
     provider: config.provider,
     children: sanitizeArray(config.children),
-    key: config.key || 'id',
+    key: config.key,
     collapsables: sanitizeArray(config.collapsables)
   };
 }

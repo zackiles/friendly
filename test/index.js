@@ -48,14 +48,11 @@ describe('Models', function(){
       done();
     });
 
-    it('should fail creating a model without a name', function(done){
+    it('should fail creating a model without proper configuratione', function(done){
       (function(){friendly.createModel({children: []});}).should.throw();
       done();
     });
-    it('should fail creating a model without a provider', function(done){
-      (function(){friendly.createModel({name: 'Book'});}).should.throw();
-      done();
-    });
+
   });
 
   describe('#expand()', function(){
