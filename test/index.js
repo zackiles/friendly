@@ -12,18 +12,29 @@ var BOOKS = [
   },
   {
     id: 2,
-    name: 'Code Complete 3',
+    name: 'John Does Biography',
     author: {
-      id: 19237
+      id: 16030
     }
+  },
+  {
+    id: 3,
+    name: 'Multi Authored Book',
+    author: [19237, 16030]
   }
 ];
+
 var AUTHORS = [
   {
     id: 19237,
     name: 'Steve McConnel'
+  },
+  {
+    id: 16030,
+    name: 'John Doe'
   }
 ];
+
 var bookModel = {
   name: 'book',
   key: 'id',
@@ -75,7 +86,7 @@ describe('Models', function(){
       .catch(done);
     });
 
-    it('should expand an array of children keys', function(done){
+    it('should expand a collection of objects', function(done){
       friendly.createModel(bookModel);
       friendly.createModel(authorModel);
 
@@ -83,7 +94,21 @@ describe('Models', function(){
 
       friendly.expand('book', models).then(function(expandedObjects){
         expandedObjects[0].author.should.have.property('name', AUTHORS[0].name);
-        expandedObjects[1].author.should.have.property('name', AUTHORS[0].name);
+        expandedObjects[1].author.should.have.property('name', AUTHORS[1].name);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('should expand an array of children keys', function(done){
+      friendly.createModel(bookModel);
+      friendly.createModel(authorModel);
+
+      friendly.expand('book', BOOKS[2]).then(function(expandedObject){
+        expandedObject.should.have.property('author').with.lengthOf(BOOKS[2].author.length);
+        var author = _.find(AUTHORS, {id: expandedObject.author[0].id});
+        if(!_.isObject(author)) return done(new Error('object is missing a matching child'));
+
         done();
       })
       .catch(done);

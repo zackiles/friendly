@@ -58,6 +58,8 @@ function expand(name, data){
 
     var model = getModel(name);
 
+    if(!data) return reject(new Error('no object was provided to expand'));
+
     // we can pass an array of models or a single model
     if( _.isArray(data) ) return resolve(expandMany(model, data));
 
