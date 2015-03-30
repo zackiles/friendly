@@ -183,9 +183,11 @@ function collapse(name, data){
   var model = getModel(name);
 
   if(!data) throw new Error('no object was provided to collapse');
-  data = _.cloneDeep(data);
 
-  _.forEach(model.children, function(child){
+  data = _.cloneDeep(data);
+  var children = getChildren(model);
+
+  _.forEach(children, function(child){
     if(data.hasOwnProperty(child)){
       var childModel = getModel(child);
       var collapsedProperties = [childModel.key];

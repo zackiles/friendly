@@ -155,7 +155,6 @@ describe('Models', function(){
 
     it('should expand a collection of objects with aliased foreign keys', function(done){
       friendly.expand('book', BOOKS[4]).then(function(expandedObject){
-        console.log(expandedObject);
         expandedObject.authors[0].should.have.property('name', AUTHORS[0].name);
         expandedObject.authors[1].should.have.property('name', AUTHORS[1].name);
         done();
@@ -184,6 +183,16 @@ describe('Models', function(){
         collapsed.author.should.have.property(authorModel.key, AUTHORS[1][authorModel.key]);
         collapsed.publisher.should.not.have.property('name');
         collapsed.publisher.should.have.property(publisherModel.key, PUBLISHERS[0][publisherModel.key]);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('should collapse a collection of objects with aliased foreign keys', function(done){
+      friendly.expand('book', BOOKS[4]).then(function(expandedObject){
+        var collapsed = friendly.collapse('book', expandedObject);
+        collapsed.authors[0].should.not.have.property('name', AUTHORS[0].name);
+        collapsed.authors[1].should.not.have.property('name', AUTHORS[1].name);
         done();
       })
       .catch(done);
