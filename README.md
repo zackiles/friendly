@@ -21,6 +21,8 @@ $ npm install friendly
 
 ## Overview
 
+For full documentation see the [API DCOS](https://github.com/zackiles/friendly/blob/master/API-DOCS.md).
+
 Two primary methods, EXPAND and COLLAPSE. Both methods work on a single parent object or an array of parent objects with nested children. A child property can be a foreign key, an object with a foreign key, or an array of either.
 
 - Expand => Like the mongoose 'populate' method. Will resolve nested children to their sources and map in a full or partial object.
