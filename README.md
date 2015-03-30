@@ -1,4 +1,5 @@
 # Friendly ORM
+[![npm version](https://badge.fury.io/js/friendly.svg)](http://badge.fury.io/js/friendly)
 
 Make relationships, link data, and build streams with plain old javascript objects. A no-frills ORM without database drivers.
 
