@@ -33,6 +33,6 @@ Type: `String or String Array`
 Children are the names of models that might appear as children of this model. When the children name might be an alias, only set the children models real name, and instead add aliases to the other models configuration.
 
 #### collapsables
-Type: `String`
+Type: `String or String Array`
 
 These are names of properties that will still be included even when this model is collapsed as a child. By default, all properties of children are collapsed except the property specified by key.
