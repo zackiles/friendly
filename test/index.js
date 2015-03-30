@@ -31,7 +31,13 @@ var BOOKS = [
     publisher: {
       id: 23687
     }
+  },
+  {
+    id: 5,
+    name: 'Book With Aliases Children',
+    authors: [19237, 16030]
   }
+
 ];
 
 var AUTHORS = [
@@ -71,6 +77,7 @@ friendly.createModel(bookModel);
 var authorModel = {
   name: 'author',
   key: 'id',
+  aliases: ['authors'],
   provider: function(id){
     return Q.Promise(function(resolve, reject) {
       resolve(_.find(AUTHORS, {id: id}));
@@ -141,6 +148,16 @@ describe('Models', function(){
       friendly.expand('book', BOOKS[3]).then(function(expandedObject){
         expandedObject.author.should.have.property('name', AUTHORS[1].name);
         expandedObject.publisher.should.have.property('name', PUBLISHERS[0].name);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('should expand a collection of objects with aliased foreign keys', function(done){
+      friendly.expand('book', BOOKS[4]).then(function(expandedObject){
+        console.log(expandedObject);
+        expandedObject.authors[0].should.have.property('name', AUTHORS[0].name);
+        expandedObject.authors[1].should.have.property('name', AUTHORS[1].name);
         done();
       })
       .catch(done);

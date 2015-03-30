@@ -24,6 +24,12 @@ CacheBucket.prototype.get = function(index, key){
 function getModel(name){
   if(!name || !_.isString(name)) throw new Error('a model name was not provided');
   var model = MODELS[name];
+  // if a model wasn't found by name, then check for matching aliases as well
+  if(!model) {
+    _.forEach(MODELS, function(m){
+      if(_.indexOf(m.aliases, name) > -1) model = m;
+    });
+  }
   if(!model) throw new Error('a model with that name does not exists');
   return model;
 }
@@ -53,6 +59,7 @@ function createModel(config){
     provider: config.provider,
     children: sanitizeArray(config.children, 'children'),
     key: config.key,
+    aliases: sanitizeArray(config.aliases, 'aliases'),
     collapsables: sanitizeArray(config.collapsables, 'collapsables')
   };
 }
@@ -76,76 +83,87 @@ function expandMany(model, data){
   });
 }
 
+function getChildren(model){
+  var children = [];
+  children = children.concat(model.children);
+
+  // look up any aliases the children might use
+  _.forEach(model.children, function(child){
+    var childModel = getModel(child);
+    children = children.concat(childModel.aliases);
+  });
+
+  return children;
+}
+
+function getKeyValue(model, item){
+  return _.isObject(item) ? item[model.key] : item;
+}
+
+function getProviderFromKeyValue(model, keyValue, cacheBucket){
+  var promise;
+  if(cacheBucket){
+    var cachedItem = cacheBucket.get(model.name, keyValue);
+    promise = cachedItem ? Q.resolve(currentCache.data) : model.provider(keyValue);
+  }else{
+    promise = model.provider(keyValue);
+  }
+  return promise;
+}
+
 function expand(name, data, cacheBucket){
   return Q.Promise(function(resolve, reject) {
 
     var model = getModel(name);
 
     if(!data) return reject(new Error('no object was provided to expand'));
+    data = _.cloneDeep(data);
 
     // we can pass an array of objects to expand or a single object
     if( _.isArray(data) ) return resolve(expandMany(model, data));
 
     var promises = [];
+    var children = getChildren(model);
 
-    _.forEach(model.children, function(prop){
+    _.forEach(children, function(prop){
       if(data.hasOwnProperty(prop)){
 
-        var childModel = MODELS[prop];
+        var childModel = getModel(prop);
         var childKey = data[prop];
 
         if(childModel && childKey){
           // can resolve a single child or an array of children
           var childPromises = [];
 
-          var getKeyValue = function(item){
-            return _.isObject(item) ? item[childModel.key] : item;
-          };
-
-          var getChildProviderPromise = function(keyValue){
-            var promise;
-            if(cacheBucket){
-              var cachedItem = cacheBucket.get(childModel.name, keyValue);
-              promise = cachedItem ? Q.resolve(currentCache.data) : childModel.provider(keyValue);
-            }else{
-              promise = childModel.provider(keyValue);
-            }
-            return promise;
-          };
-
           // is the child an array of children objects or a single object?
           if( _.isArray(childKey) ){
+
             data[prop] = [];
             // if its an array, then recursively fetch and map each inner child object
             _.forEach(childKey, function(innerChild){
-              var foreignKey = getKeyValue(innerChild);
 
-              childPromises.push(
+              var foreignKeyValue = getKeyValue(model, innerChild);
 
-                getChildProviderPromise( foreignKey )
-                .then(function(results){
-                  if(results){
-                    if(cacheBucket) cacheBucket.add(childModel.name, foreignKey, results);
-                    data[prop].push(results);
-                  }
-                })
+              var promise = getProviderFromKeyValue(childModel, foreignKeyValue, cacheBucket).then(function(results){
+                if(results){
+                  if(cacheBucket) cacheBucket.add(childModel.name, foreignKeyValue, results);
+                  data[prop].push(results);
+                }
+              });
+              childPromises.push(promise);
 
-              );
             });
           }else{
-            var foreignKey = getKeyValue(childKey);
 
-            childPromises.push(
+            var foreignKeyValue = getKeyValue(model, childKey);
+            var promise = getProviderFromKeyValue(childModel, foreignKeyValue, cacheBucket).then(function(results){
+              if(results){
+                if(cacheBucket) cacheBucket.add(childModel.name, foreignKeyValue, results);
+                data[prop] = results;
+              }
+            });
+            childPromises.push(promise);
 
-              getChildProviderPromise( foreignKey )
-              .then(function(results){
-                if(results){
-                  if(cacheBucket) cacheBucket.add(childModel.name, foreignKey, results);
-                  data[prop] = results;
-                }
-              })
-
-            );
           }
 
           if(childPromises.length) promises = promises.concat(childPromises);
@@ -165,6 +183,7 @@ function collapse(name, data){
   var model = getModel(name);
 
   if(!data) throw new Error('no object was provided to collapse');
+  data = _.cloneDeep(data);
 
   _.forEach(model.children, function(child){
     if(data.hasOwnProperty(child)){
