@@ -48,6 +48,7 @@ function createModel(config){
       return [];
     }
   };
+
   if( !config.name ) throw new Error('a model name was not provided');
   if( MODELS[config.name] ) throw new Error('a model with this name already exists');
   if( !config.provider ) throw new Error('a model provider was not provided');

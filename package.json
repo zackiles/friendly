@@ -25,8 +25,10 @@
   "homepage": "https://github.com/zackiles/friendly",
   "dependencies": {
     "lodash": "^3.6.0",
+    "q": "^1.2.0"
+  },
+  "devDependencies": {
     "mocha": "^2.2.1",
-    "q": "^1.2.0",
     "should": "^5.2.0"
   }
 }
