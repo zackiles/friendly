@@ -105,13 +105,11 @@ function expandMany(modelName, data){
 function expand(modelName, modelData, cacheBucket){
   if(!modelName) return Promise.reject(new Error('No model name was provided to expand.'));
   if(!modelData) return Promise.reject(new Error('No data was provided to expand.'));
-  // we can pass an array of objects to expand or a single object
+  // we can pass an array or a single object
   if( _.isArray(modelData) ) return expandMany(modelName, modelData);
 
   var data = _.cloneDeep(modelData);
-
   var modelObj = getModel(modelName);
-
   var childrenKeys = getChildrenKeys(modelObj.model);
 
   _.forEach(childrenKeys, function(key){
@@ -139,6 +137,48 @@ function expand(modelName, modelData, cacheBucket){
   });
 
   return Promise.props(data);
+}
+
+function collapseMany(modelName, modelData){
+  return _.map(modelData, function(i){
+    return collapse(modelName, i);
+  });
+}
+
+function collapse(modelName, modelData){
+  if(!modelName) return Promise.reject(new Error('No model name was provided to expand.'));
+  if(!modelData) return Promise.reject(new Error('No data was provided to expand.'));
+  // we can pass an array or a single object
+  if( _.isArray(modelData) ) return collapseMany(modelName, modelData);
+
+  var data = _.cloneDeep(modelData);
+  var modelObj = getModel(modelName);
+  var childrenKeys = getChildrenKeys(modelObj.model);
+
+  _.forEach(childrenKeys, function(key){
+
+    var child = getChildByKey(data, key);
+      if(child){
+        var childModelObj = getModel(key);
+        var collapsedProperties = [childModelObj.model.key];
+
+        // default is to always add the model key property, and then any
+        // user configured collapsables for this child model.
+        if(childModelObj.model.collapsables.length) collapsedProperties = collapsedProperties.concat(childModelObj.model.collapsables);
+
+        if( _.isArray(child) ){
+          var childArray = [];
+          _.forEach(child, function(c){
+            childArray.push(_.pick(c, collapsedProperties));
+          });
+          data = replacePropertyByKey(data, childModelObj.foundAs, childArray);
+        }else{
+          data = replacePropertyByKey(data, childModelObj.foundAs, _.pick(child, collapsedProperties));
+        }
+      }
+  });
+
+  return data;
 }
 
 function getProviderPromise(model, child, cacheBucket){
@@ -205,40 +245,6 @@ function getChildByKey(obj, key) {
     }
   }
   return obj;
-}
-
-function collapse(name, data){
-
-  var model = getModel(name);
-
-  if(!data) throw new Error('no object was provided to collapse');
-
-  data = _.cloneDeep(data);
-  var children = getChildren(model);
-
-  _.forEach(children, function(child){
-    if(data.hasOwnProperty(child)){
-      var childModel = getModel(child);
-      var collapsedProperties = [childModel.key];
-
-      // default is to always add the model key property, and then any
-      // user configured collapsables for this child model.
-      if(childModel.collapsables.length) collapsedProperties = collapsedProperties.concat(childModel.collapsables);
-
-      if( _.isArray(data[child]) ){
-        var childArray = [];
-        _.forEach(data[child], function(c){
-          childArray.push(_.pick(c, collapsedProperties));
-        });
-        data[child] = childArray;
-      }else{
-        data[child] = _.pick(data[child], collapsedProperties);
-      }
-
-    }
-  });
-
-  return data;
 }
 
 module.exports = {

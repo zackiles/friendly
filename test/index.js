@@ -165,7 +165,7 @@ describe('Models', function(){
 
   });
 
-  /**describe('#collapse()', function(){
+  describe('#collapse()', function(){
 
     it('should collapse a single child object to just a key', function(done){
       friendly.expand('book', BOOKS[0]).then(function(expandedObject){
@@ -199,6 +199,6 @@ describe('Models', function(){
       .catch(done);
     });
 
-  });*/
+  });
 
 });
