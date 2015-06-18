@@ -185,10 +185,17 @@ var book = {
   }
 };
 
+### How many ways can I call a model name?
+3 ways. Friendly methods like expand and collapse take a model name as the first paramater, which is very flexible. Besides just using the default name you set you can also:
+
+- Call it by the name you set in it's model.
+- Call it by one of it's aliases, so 'book' can be called by 'books' or 'bookCollection' if you have those as aliases.
+- Call it by dot notation when it's nested in an object you don't have a model for. So you can use 'someObject.book', and the model will be detected from the name after the last period (which can also be it's alias). You can also deep nest, and do stuff like 'outer.inner.someObject.book'.
+
 ```
 ### What about deep nested children?
 
-Friendly accepts dot notation in replace of the model name. So instead of calling something like ***friendly.expand('mymodel')*** you can call ***friendly.expand('outer.mymodel')*** instead. Friendly will use the key name after the last period in the string, in this case it would be 'mymodel'. As long as that name matches a model name or model alias, it can be nested in any outer object you wish, even ones without models configured. Here is an example of expanding using dot notation (you can collapse as well):
+Friendly accepts dot notation in replacement of the model name on any method calls. So instead of calling something like ***friendly.expand('mymodel')*** you can call ***friendly.expand('outer.mymodel')*** instead. Friendly will use the key name after the last period in the string, in this case it would be 'mymodel'. As long as that name matches a model name or model alias, it can be nested in any outer object you wish, even ones without models configured. Here is an example of expanding using dot notation (you can collapse as well):
 
 ``` js
 
