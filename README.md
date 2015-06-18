@@ -176,6 +176,41 @@ var book = {
 };
 
 ```
+### What about deep nested children?
+
+Friendly accepts dot notation in replace of the model name. So instead of calling something like ***friendly.expand('mymodel')*** you can call ***friendly.expand('outer.mymodel')*** instead. Friendly will use the key name after the last period in the string, in this case it would be 'mymodel'. As long as that name matches a model name or model alias, it can be nested in any outer object you wish, even ones without models configured. Here is an example of expanding using dot notation (you can collapse as well):
+
+``` js
+
+/** Assuming we have a book model configured, and a book that looks like this
+{
+  id: '203',
+  name: 'Code Complete 2'
+};
+/*
+
+var object = {
+  inner: {
+    book: '203'
+  }
+};
+
+friendly.expand('inner.book', object).then(function(expandedObject){
+  console.log(expandedBook);
+  /** prints (note we don't need a model configured named 'inner' at all)
+    {
+      inner: {
+        book: {
+          id: '203',
+          name: 'Code Complete 2'
+        }
+      }
+    }
+  /*
+});
+
+```
+
 
 ### Gotcha's
 
