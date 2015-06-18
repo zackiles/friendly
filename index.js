@@ -44,7 +44,7 @@ function getModel(name){
     });
   }
 
-  if(!model) throw new Error('A model with that name has not been configured..');
+  if(!model) throw new Error('A model with that name has not been configured.');
 
   return {
     model: model,
@@ -67,11 +67,11 @@ function createModel(config){
     }
   };
 
-  if( !config.name ) throw new Error('a model name was not provided');
-  if( MODELS[config.name] ) throw new Error('a model with this name already exists');
-  if( !config.provider ) throw new Error('a model provider was not provided');
-  if( !config.key ) throw new Error('a model key was not provided');
-  if( !_.isFunction(config.provider) ) throw new Error('a model provider must be a function');
+  if( !config.name ) throw new Error('A model name was not provided.');
+  if( MODELS[config.name] ) throw new Error('A model with this name already exists.');
+  if( !config.provider ) throw new Error('A model provider was not provided.');
+  if( !config.key ) throw new Error('A model key was not provided.');
+  if( !_.isFunction(config.provider) ) throw new Error('A model provider must be a function.');
 
   MODELS[config.name] = {
     name: config.name,
@@ -146,8 +146,8 @@ function collapseMany(modelName, modelData){
 }
 
 function collapse(modelName, modelData){
-  if(!modelName) return Promise.reject(new Error('No model name was provided to expand.'));
-  if(!modelData) return Promise.reject(new Error('No data was provided to expand.'));
+  if(!modelName) return throw ew Error('No model name was provided to expand.'));
+  if(!modelData) return throw new Error('No data was provided to expand.'));
   // we can pass an array or a single object
   if( _.isArray(modelData) ) return collapseMany(modelName, modelData);
 
