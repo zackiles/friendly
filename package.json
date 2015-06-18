@@ -15,7 +15,8 @@
     "object",
     "releationship",
     "mapping",
-    "streams"
+    "streams",
+    "data"
   ],
   "author": "Zachary Iles <zack.iles@gmail.com>",
   "license": "MIT",
@@ -25,10 +26,10 @@
   "homepage": "https://github.com/zackiles/friendly",
   "dependencies": {
     "bluebird": "^2.9.30",
-    "lodash": "^3.6.0"
+    "lodash": "^3.9.3"
   },
   "devDependencies": {
-    "mocha": "^2.2.1",
-    "should": "^5.2.0"
+    "mocha": "^2.2.5",
+    "should": "^7.0.1"
   }
 }
