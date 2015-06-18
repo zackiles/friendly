@@ -1,25 +1,10 @@
 'use strict';
 
-var Promise = require('bluebird'),
+var CacheBucket = require('./cache-bucket'),
+    Promise = require('bluebird'),
     _ = require('lodash');
 
 var MODELS = {};
-
-function CacheBucket(){
-  this.list = {};
-}
-
-CacheBucket.prototype.add = function(index, key, data){
-  var cached = this.get(index, key);
-  if(cached) return;
-  if(!this.list[index]) this.list[index] = [];
-  this.list[index].push({ key: key, data: data});
-};
-
-CacheBucket.prototype.get = function(index, key){
-  if(!this.list[index]) return null;
-  return _.find(this.list[index], {key: key});
-};
 
 function getModel(name){
   if(!name || !_.isString(name)) throw Error('A model name was not provided.');
@@ -110,7 +95,7 @@ function expand(modelName, modelData, cacheBucket){
 
   var data = _.cloneDeep(modelData);
   var modelObj = getModel(modelName);
-  var childrenKeys = getChildrenKeys(modelObj.model);
+  var childrenKeys = getChildKeysByModel(modelObj.model);
 
   _.forEach(childrenKeys, function(key){
     var child = getChildByKey(data, key);
@@ -132,7 +117,7 @@ function expand(modelName, modelData, cacheBucket){
           childProviderPromise = getProviderPromise(childModelObj.model, child, cacheBucket);
         }
 
-        data = replacePropertyByKey(data, childModelObj.foundAs, childProviderPromise);
+        data = replaceChildByKey(data, childModelObj.foundAs, childProviderPromise);
       }
   });
 
@@ -153,7 +138,7 @@ function collapse(modelName, modelData){
 
   var data = _.cloneDeep(modelData);
   var modelObj = getModel(modelName);
-  var childrenKeys = getChildrenKeys(modelObj.model);
+  var childrenKeys = getChildKeysByModel(modelObj.model);
 
   _.forEach(childrenKeys, function(key){
 
@@ -171,9 +156,9 @@ function collapse(modelName, modelData){
           _.forEach(child, function(c){
             childArray.push(_.pick(c, collapsedProperties));
           });
-          data = replacePropertyByKey(data, childModelObj.foundAs, childArray);
+          data = replaceChildByKey(data, childModelObj.foundAs, childArray);
         }else{
-          data = replacePropertyByKey(data, childModelObj.foundAs, _.pick(child, collapsedProperties));
+          data = replaceChildByKey(data, childModelObj.foundAs, _.pick(child, collapsedProperties));
         }
       }
   });
@@ -204,7 +189,7 @@ function getModelProviderByKeyValue(model, keyValue, cacheBucket){
   }
 }
 
-function getChildrenKeys(model){
+function getChildKeysByModel(model){
   var children = [];
   children = children.concat(model.children);
 
@@ -217,7 +202,7 @@ function getChildrenKeys(model){
   return children;
 }
 
-function replacePropertyByKey(obj, key, replace) {
+function replaceChildByKey(obj, key, replace) {
   // allows dot notation like 'inner.outer'
   key = key.replace(/\[(\w+)\]/g, '.$1');
   key = key.replace(/^\./, '');
