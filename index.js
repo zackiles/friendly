@@ -22,13 +22,13 @@ CacheBucket.prototype.get = function(index, key){
 };
 
 function getModel(name){
-  if(!name || !_.isString(name)) throw new Error('A model name was not provided.');
+  if(!name || !_.isString(name)) throw Error('A model name was not provided.');
 
   // check for dot-notation names like 'outer.inner' where 'inner' is the model name
   if(_.includes(name, '.')){
     var nameKeys = name.split('.');
     name = nameKeys[nameKeys.length -1];
-    if(!name) throw new Error('Model name ' + name + ' is invalid. Remove trailing period.');
+    if(!name) throw Error('Model name ' + name + ' is invalid. Remove trailing period.');
   }
 
   var model = MODELS[name];
@@ -44,7 +44,7 @@ function getModel(name){
     });
   }
 
-  if(!model) throw new Error('A model with that name has not been configured.');
+  if(!model) throw Error('A model with that name has not been configured.');
 
   return {
     model: model,
@@ -67,11 +67,11 @@ function createModel(config){
     }
   };
 
-  if( !config.name ) throw new Error('A model name was not provided.');
-  if( MODELS[config.name] ) throw new Error('A model with this name already exists.');
-  if( !config.provider ) throw new Error('A model provider was not provided.');
-  if( !config.key ) throw new Error('A model key was not provided.');
-  if( !_.isFunction(config.provider) ) throw new Error('A model provider must be a function.');
+  if( !config.name ) throw Error('A model name was not provided.');
+  if( MODELS[config.name] ) throw Error('A model with this name already exists.');
+  if( !config.provider ) throw Error('A model provider was not provided.');
+  if( !config.key ) throw Error('A model key was not provided.');
+  if( !_.isFunction(config.provider) ) throw Error('A model provider must be a function.');
 
   MODELS[config.name] = {
     name: config.name,
@@ -103,8 +103,8 @@ function expandMany(modelName, data){
 }
 
 function expand(modelName, modelData, cacheBucket){
-  if(!modelName) return Promise.reject(new Error('No model name was provided to expand.'));
-  if(!modelData) return Promise.reject(new Error('No data was provided to expand.'));
+  if(!modelName) return Promise.reject(Error('No model name was provided to expand.'));
+  if(!modelData) return Promise.reject(Error('No data was provided to expand.'));
   // we can pass an array or a single object
   if( _.isArray(modelData) ) return expandMany(modelName, modelData);
 
@@ -146,8 +146,8 @@ function collapseMany(modelName, modelData){
 }
 
 function collapse(modelName, modelData){
-  if(!modelName) return throw ew Error('No model name was provided to expand.'));
-  if(!modelData) return throw new Error('No data was provided to expand.'));
+  if(!modelName) throw Error('No model name was provided to expand.');
+  if(!modelData) throw Error('No data was provided to expand.');
   // we can pass an array or a single object
   if( _.isArray(modelData) ) return collapseMany(modelName, modelData);
 
