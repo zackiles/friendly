@@ -24,8 +24,8 @@
   },
   "homepage": "https://github.com/zackiles/friendly",
   "dependencies": {
-    "lodash": "^3.6.0",
-    "q": "^1.2.0"
+    "bluebird": "^2.9.30",
+    "lodash": "^3.6.0"
   },
   "devDependencies": {
     "mocha": "^2.2.1",

@@ -1,5 +1,5 @@
 var should = require('should'),
-    Q = require('q'),
+    Promise = require('bluebird'),
     friendly = require('../index.js'),
     _ = require('lodash');
 
@@ -67,7 +67,7 @@ var bookModel = {
   key: 'id',
   children: ['author', 'publisher'],
   provider: function(id){
-    return Q.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       resolve(_.find(BOOKS, {id: id}));
     });
   }
@@ -79,7 +79,7 @@ var authorModel = {
   key: 'id',
   aliases: ['authors'],
   provider: function(id){
-    return Q.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       resolve(_.find(AUTHORS, {id: id}));
     });
   }
@@ -90,7 +90,7 @@ var publisherModel = {
   name: 'publisher',
   key: 'id',
   provider: function(id){
-    return Q.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       resolve(_.find(PUBLISHERS, {id: id}));
     });
   }

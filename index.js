@@ -1,6 +1,6 @@
 'use strict';
 
-var Q = require('q'),
+var Promise = require('bluebird'),
     _ = require('lodash');
 
 var MODELS = {};
@@ -66,7 +66,7 @@ function createModel(config){
 }
 
 function expandMany(model, data){
-  return Q.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
 
     // create a per instance cache bucket so we don't call the provider
     // for the same object multiple times. could cause issues if this
@@ -77,7 +77,7 @@ function expandMany(model, data){
       return expand(model.name, d, cacheBucket);
     });
 
-    Q.all(promises).spread(function(){
+    Promise.all(promises).spread(function(){
       resolve(Array.prototype.slice.call(arguments));
     }, reject);
 
@@ -105,7 +105,7 @@ function getProviderFromKeyValue(model, keyValue, cacheBucket){
   var promise;
   if(cacheBucket){
     var cachedItem = cacheBucket.get(model.name, keyValue);
-    promise = cachedItem ? Q.resolve(currentCache.data) : model.provider(keyValue);
+    promise = cachedItem ? Promise.resolve(currentCache.data) : model.provider(keyValue);
   }else{
     promise = model.provider(keyValue);
   }
@@ -113,7 +113,7 @@ function getProviderFromKeyValue(model, keyValue, cacheBucket){
 }
 
 function expand(name, data, cacheBucket){
-  return Q.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
 
     var model = getModel(name);
 
@@ -174,7 +174,7 @@ function expand(name, data, cacheBucket){
     });
 
     if(!promises.length) return resolve(data);
-    Q.all(promises).spread(function(){resolve(data);}, reject);
+    Promise.all(promises).spread(function(){resolve(data);}, reject);
 
   });
 }
