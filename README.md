@@ -173,7 +173,9 @@ var book = {
     { id: '2462' },
   ]
 };
-// #5 - author in a an unknown nested property. This allows you to call methods with dot notation like 'randomObject.author' (see 'What about deep nested children?' below)
+// #5 - author in a an unknown nested property.
+// This allows you to call methods with dot notation like 'randomObject.author'
+// (see 'What about deep nested children?' below)
   id: '203',
   name: 'Code Complete 2',
   randomObject: {
