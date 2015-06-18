@@ -141,11 +141,11 @@ friendly.expand('book', exampleBook).then(function(expandedBook){
 
 ### How many ways can I represent a child object?
 
-4 ways. Pay attention to how the author object changes in these examples. These are assuming you've created both a book and author model, and the author models key is set to 'id'.
+5 ways. Pay attention to how the author object changes in these examples. These are assuming you've created both a book and author model, and the author models key is set to 'id'.
 
 ``` js
 
-// #1 - author as a value
+// #1 - author as a primitive value
 var book = {
   id: '203',
   name: 'Code Complete 2',
@@ -159,20 +159,30 @@ var book = {
     id: '19237'
   }
 };
-// #3 - multiple authors as an array
+// #3 - multiple authors as an array of primitive values
 var book = {
   id: '203',
   name: 'Code Complete 2',
   author: ['19237', '2462']
 };
-// #4 - multiple authors as an object array
-var book = {
+// #4 - multiple authors as an object array of objects
   id: '203',
   name: 'Code Complete 2',
   author: [
     { id: '19237' },
     { id: '2462' },
   ]
+};
+// #5 - author in a an unknown nested property. This allows you to call methods with dot notation like 'randomObject.author' (see 'What about deep nested children?' below)
+  id: '203',
+  name: 'Code Complete 2',
+  randomObject: {
+    name: 'something',
+    author: [
+      { id: '19237' },
+      { id: '2462' }
+    ]
+  }
 };
 
 ```
