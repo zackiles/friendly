@@ -22,16 +22,34 @@ CacheBucket.prototype.get = function(index, key){
 };
 
 function getModel(name){
-  if(!name || !_.isString(name)) throw new Error('a model name was not provided');
+  if(!name || !_.isString(name)) throw new Error('A model name was not provided.');
+
+  // check for dot-notation names like 'outer.inner' where 'inner' is the model name
+  if(_.includes(name, '.')){
+    var nameKeys = name.split('.');
+    name = nameKeys[nameKeys.length -1];
+    if(!name) throw new Error('Model name ' + name + ' is invalid. Remove trailing period.');
+  }
+
   var model = MODELS[name];
+  var foundAs = name;
+
   // if a model wasn't found by name, then check for matching aliases as well
   if(!model) {
     _.forEach(MODELS, function(m){
-      if(_.indexOf(m.aliases, name) > -1) model = m;
+      if(_.indexOf(m.aliases, name) > -1) {
+        foundAs = name;
+        model = m;
+      }
     });
   }
-  if(!model) throw new Error('a model with that name does not exists');
-  return model;
+
+  if(!model) throw new Error('A model with that name has not been configured..');
+
+  return {
+    model: model,
+    foundAs: foundAs
+  };
 }
 
 function createModel(config){
@@ -39,7 +57,7 @@ function createModel(config){
   var sanitizeArray = function(arr, type){
     if( _.isArray(arr) ){
       _.forEach(arr, function(a){
-        if( !_.isString(a) ) throw new Error(type + ' must be an array of strings');
+        if( !_.isString(a) ) throw new Error(type + ' must be an array of strings.');
       });
       return _.uniq(arr);
     }else if( _.isString(arr) ){
@@ -65,7 +83,7 @@ function createModel(config){
   };
 }
 
-function expandMany(model, data){
+function expandMany(modelName, data){
   return new Promise(function(resolve, reject) {
 
     // create a per instance cache bucket so we don't call the provider
@@ -74,7 +92,7 @@ function expandMany(model, data){
     var cacheBucket = new CacheBucket();
 
     var promises = _.map(data, function(d){
-      return expand(model.name, d, cacheBucket);
+      return expand(modelName, d, cacheBucket);
     });
 
     Promise.all(promises).spread(function(){
@@ -84,99 +102,109 @@ function expandMany(model, data){
   });
 }
 
-function getChildren(model){
+function expand(modelName, modelData, cacheBucket){
+  if(!modelName) return Promise.reject(new Error('No model name was provided to expand.'));
+  if(!modelData) return Promise.reject(new Error('No data was provided to expand.'));
+  // we can pass an array of objects to expand or a single object
+  if( _.isArray(modelData) ) return expandMany(modelName, modelData);
+
+  var data = _.cloneDeep(modelData);
+
+  var modelObj = getModel(modelName);
+
+  var childrenKeys = getChildrenKeys(modelObj.model);
+
+  _.forEach(childrenKeys, function(key){
+    var child = getChildByKey(data, key);
+      if(child){
+
+        var childModelObj = getModel(key);
+        var childProviderPromise;
+
+        if(_.isArray(child)){
+          //console.log('the child is an array for', modelName);
+          childProviderPromise = Promise.all(child.map(function(c){
+            return getProviderPromise(childModelObj.model, c, cacheBucket);
+          }))
+          .spread(function(){
+            return Array.prototype.slice.call(arguments);
+          });
+
+        }else{
+          childProviderPromise = getProviderPromise(childModelObj.model, child, cacheBucket);
+        }
+
+        data = replacePropertyByKey(data, childModelObj.foundAs, childProviderPromise);
+      }
+  });
+
+  return Promise.props(data);
+}
+
+function getProviderPromise(model, child, cacheBucket){
+  return new Promise(function(resolve, reject) {
+    var childProviderKeyValue = _.isObject(child) ? child[model.key] : child;
+    getModelProviderByKeyValue(model, childProviderKeyValue, cacheBucket)
+    .then(function(results){
+      resolve(results);
+    }).catch(function(err){
+      // just skip over resolve failures.
+      console.error(err);
+      resolve(child);
+    });
+  });
+}
+
+function getModelProviderByKeyValue(model, keyValue, cacheBucket){
+  if(cacheBucket){
+    var cachedItem = cacheBucket.get(model.name, keyValue);
+    return cachedItem ? Promise.resolve(cachedItem) : model.provider(keyValue);
+  }else{
+    return model.provider(keyValue);
+  }
+}
+
+function getChildrenKeys(model){
   var children = [];
   children = children.concat(model.children);
 
   // look up any aliases the children might use
   _.forEach(model.children, function(child){
-    var childModel = getModel(child);
+    var childModel = getModel(child).model;
     children = children.concat(childModel.aliases);
   });
 
   return children;
 }
 
-function getKeyValue(model, item){
-  return _.isObject(item) ? item[model.key] : item;
-}
-
-function getProviderFromKeyValue(model, keyValue, cacheBucket){
-  var promise;
-  if(cacheBucket){
-    var cachedItem = cacheBucket.get(model.name, keyValue);
-    promise = cachedItem ? Promise.resolve(currentCache.data) : model.provider(keyValue);
-  }else{
-    promise = model.provider(keyValue);
+function replacePropertyByKey(obj, key, replace) {
+  // allows dot notation like 'inner.outer'
+  key = key.replace(/\[(\w+)\]/g, '.$1');
+  key = key.replace(/^\./, '');
+  var a = key.split('.');
+  for (var i = 0, n = a.length; i < n; ++i) {
+    var k = a[i];
+    if (k in obj) {
+        obj[k] = replace;
+    }
   }
-  return promise;
+  return obj;
 }
 
-function expand(name, data, cacheBucket){
-  return new Promise(function(resolve, reject) {
-
-    var model = getModel(name);
-
-    if(!data) return reject(new Error('no object was provided to expand'));
-    data = _.cloneDeep(data);
-
-    // we can pass an array of objects to expand or a single object
-    if( _.isArray(data) ) return resolve(expandMany(model, data));
-
-    var promises = [];
-    var children = getChildren(model);
-
-    _.forEach(children, function(prop){
-      if(data.hasOwnProperty(prop)){
-
-        var childModel = getModel(prop);
-        var childKey = data[prop];
-
-        if(childModel && childKey){
-          // can resolve a single child or an array of children
-          var childPromises = [];
-
-          // is the child an array of children objects or a single object?
-          if( _.isArray(childKey) ){
-
-            data[prop] = [];
-            // if its an array, then recursively fetch and map each inner child object
-            _.forEach(childKey, function(innerChild){
-
-              var foreignKeyValue = getKeyValue(model, innerChild);
-
-              var promise = getProviderFromKeyValue(childModel, foreignKeyValue, cacheBucket).then(function(results){
-                if(results){
-                  if(cacheBucket) cacheBucket.add(childModel.name, foreignKeyValue, results);
-                  data[prop].push(results);
-                }
-              });
-              childPromises.push(promise);
-
-            });
-          }else{
-
-            var foreignKeyValue = getKeyValue(model, childKey);
-            var promise = getProviderFromKeyValue(childModel, foreignKeyValue, cacheBucket).then(function(results){
-              if(results){
-                if(cacheBucket) cacheBucket.add(childModel.name, foreignKeyValue, results);
-                data[prop] = results;
-              }
-            });
-            childPromises.push(promise);
-
-          }
-
-          if(childPromises.length) promises = promises.concat(childPromises);
-        }
-
-      }
-    });
-
-    if(!promises.length) return resolve(data);
-    Promise.all(promises).spread(function(){resolve(data);}, reject);
-
-  });
+function getChildByKey(obj, key) {
+  // allows dot notation like 'inner.outer'
+  key = key.replace(/\[(\w+)\]/g, '.$1');
+  key = key.replace(/^\./, '');
+  var a = key.split('.');
+  for (var i = 0, n = a.length; i < n; ++i) {
+    var k = a[i];
+    if (k in obj) {
+      obj = obj[k];
+    } else {
+      return;
+    }
+  }
+  return obj;
 }
 
 function collapse(name, data){
