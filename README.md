@@ -126,7 +126,7 @@ friendly.expand('book', exampleBook).then(function(expandedBook){
         name: 'Steve McConnel'
       }
     }
-  /*
+  */
   var collapsedBook = friendly.expand('book', expandedBook);
   console.log(collapsedBook);
   /** prints
@@ -135,7 +135,7 @@ friendly.expand('book', exampleBook).then(function(expandedBook){
       name: 'Code Complete 2',
       author: '19237'
     }
-  /*
+  */
 });
 ```
 
@@ -187,7 +187,7 @@ Friendly accepts dot notation in replace of the model name. So instead of callin
   id: '203',
   name: 'Code Complete 2'
 };
-/*
+*/
 
 var object = {
   inner: {
@@ -206,7 +206,7 @@ friendly.expand('inner.book', object).then(function(expandedObject){
         }
       }
     }
-  /*
+  */
 });
 
 ```
