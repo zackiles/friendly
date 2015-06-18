@@ -174,7 +174,8 @@ function getProviderPromise(model, child, cacheBucket){
       resolve(results);
     }).catch(function(err){
       // just skip over resolve failures.
-      console.error(err);
+      console.error({error: err.toString(), stack: err.stack});
+      console.error('[friendly] WARN: Provider for model:', model.name, 'was unable to resolve an object for child:', child, 'Skiping child.');
       resolve(child);
     });
   });
