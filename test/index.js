@@ -3,7 +3,7 @@ var should = require('should'),
     friendly = require('../index.js'),
     _ = require('lodash');
 
-process.env.NODE_ENV = 'test';
+process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 
 var BOOKS = [
   {
@@ -108,8 +108,15 @@ describe('Models', function(){
       done();
     });
 
-    it('should fail creating a model without proper configuratione', function(done){
+    it('should fail creating a model without proper configuration', function(done){
       (function(){friendly.createModel({children: []});}).should.throw();
+      done();
+    });
+
+    it('should fail creating a model twice', function(done){
+      (function(){
+        friendly.createModel(publisherModel);
+      }).should.throw();
       done();
     });
 
@@ -117,7 +124,7 @@ describe('Models', function(){
 
   describe('#expand()', function(){
 
-    it('should expand a single object', function(done){
+    it('should expand an object', function(done){
       friendly.expand('book', BOOKS[0]).then(function(expandedObject){
         expandedObject.author.should.have.property('name', AUTHORS[0].name);
         done();
@@ -125,12 +132,38 @@ describe('Models', function(){
       .catch(done);
     });
 
-    it('should expand a collection of objects', function(done){
+    it('should expand an array of objects', function(done){
       var models = [ BOOKS[0], BOOKS[1] ];
       friendly.expand('book', models).then(function(expandedObjects){
-
         expandedObjects[0].author.should.have.property('name', AUTHORS[0].name);
         expandedObjects[1].author.should.have.property('name', AUTHORS[1].name);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('should expand a nested object using dot-notation', function(done){
+      var object = {
+        inner: {
+          book : BOOKS[0].id
+        }
+      };
+      friendly.expand('inner.book', object).then(function(expandedObject){
+        expandedObject.inner.book.should.have.property('name', BOOKS[0].name);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('should expand a nested array of objects using dot-notation', function(done){
+      var object = {
+        inner: {
+          book : [BOOKS[0].id, BOOKS[1].id]
+        }
+      };
+      friendly.expand('inner.book', object).then(function(expandedObject){
+        expandedObject.inner.book[0].should.have.property('name', BOOKS[0].name);
+        expandedObject.inner.book[1].should.have.property('name', BOOKS[1].name);
         done();
       })
       .catch(done);
@@ -146,7 +179,7 @@ describe('Models', function(){
       .catch(done);
     });
 
-    it('should expand multiple types of children in one object', function(done){
+    it('should expand multiple children in one object', function(done){
       friendly.expand('book', BOOKS[3]).then(function(expandedObject){
         expandedObject.author.should.have.property('name', AUTHORS[1].name);
         expandedObject.publisher.should.have.property('name', PUBLISHERS[0].name);
@@ -155,7 +188,7 @@ describe('Models', function(){
       .catch(done);
     });
 
-    it('should expand a collection of objects with aliased foreign keys', function(done){
+    it('should expand an array of children with aliased keys', function(done){
       friendly.expand('book', BOOKS[4]).then(function(expandedObject){
         expandedObject.authors[0].should.have.property('name', AUTHORS[0].name);
         expandedObject.authors[1].should.have.property('name', AUTHORS[1].name);
