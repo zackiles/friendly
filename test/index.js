@@ -3,6 +3,7 @@ var should = require('should'),
     friendly = require('../index.js'),
     _ = require('lodash');
 
+process.env.NODE_ENV = 'test';
 
 var BOOKS = [
   {

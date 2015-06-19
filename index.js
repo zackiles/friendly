@@ -6,6 +6,16 @@ var CacheBucket = require('./cache-bucket'),
 
 var MODELS = {};
 
+function logError(err){
+  console.error('[friendly] ERROR:', err);
+}
+
+function log(){
+  if(process.env.NODE_ENV === 'development'){
+    console.log('[friendly] INFO:', Array.prototype.slice.call(arguments).join(' '));
+  }
+}
+
 function getModel(name){
   if(!name || !_.isString(name)) throw Error('A model name was not provided.');
 
@@ -97,6 +107,8 @@ function expand(modelName, modelData, cacheBucket){
   var modelObj = getModel(modelName);
   var childrenKeys = getChildKeysByModel(modelObj.model);
 
+  log('Expanding model:', modelName, 'with keys:', childrenKeys.join());
+
   _.forEach(childrenKeys, function(key){
     var child = getChildByKey(data, key);
       if(child){
@@ -147,6 +159,8 @@ function collapse(modelName, modelData){
         var childModelObj = getModel(key);
         var collapsedProperties = [childModelObj.model.key];
 
+        log('Collapsing model:', modelName, 'with the following collapsables:', collapsedProperties.join());
+
         // default is to always add the model key property, and then any
         // user configured collapsables for this child model.
         if(childModelObj.model.collapsables.length) collapsedProperties = collapsedProperties.concat(childModelObj.model.collapsables);
@@ -169,13 +183,14 @@ function collapse(modelName, modelData){
 function getProviderPromise(model, child, cacheBucket){
   return new Promise(function(resolve, reject) {
     var childProviderKeyValue = _.isObject(child) ? child[model.key] : child;
+    log('Calling provider for model:', model.name, 'using key:', model.key, 'and value:', childProviderKeyValue);
     getModelProviderByKeyValue(model, childProviderKeyValue, cacheBucket)
     .then(function(results){
       resolve(results);
     }).catch(function(err){
       // just skip over resolve failures.
-      console.error({error: err.toString(), stack: err.stack});
-      console.error('[friendly] WARN: Provider for model:', model.name, 'was unable to resolve an object for child:', child, 'Skiping child.');
+      logError(err);
+      logError('Provider for model:', model.name, 'was unable to resolve an object for child:', child, 'Skiping child.');
       resolve(child);
     });
   });
