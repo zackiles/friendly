@@ -9,7 +9,7 @@ var MODELS = {};
 
 function logError(){
   var args = Array.prototype.slice.call(arguments);
-  if(args[0] instanceof Error) args[0] = util.inspect(args[0]);
+  if(args[0] instanceof Error) args[0] = args[0].stack;
   args = args.join(' ');
   console.error('[friendly] ERROR:', args);
 }
@@ -121,7 +121,6 @@ function expand(modelName, modelData, cacheBucket){
         var childProviderPromise;
 
         if(_.isArray(child)){
-          //console.log('the child is an array for', modelName);
           childProviderPromise = Promise.all(child.map(function(c){
             return getProviderPromise(childModelObj.model, c, cacheBucket);
           }))
@@ -189,7 +188,7 @@ function getProviderPromise(model, child, cacheBucket){
     var childProviderKeyValue = _.isObject(child) ? child[model.key] : child;
     getModelProviderByKeyValue(model, childProviderKeyValue, cacheBucket)
     .then(function(results){
-      if(cacheBucket) cacheBucket.set(model.name, childProviderKeyValue, results);
+      if(cacheBucket) cacheBucket.add(model.name, childProviderKeyValue, results);
       resolve(results);
     }).catch(function(err){
       // just skip over resolve failures.
