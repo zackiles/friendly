@@ -1,13 +1,17 @@
 'use strict';
 
 var CacheBucket = require('./cache-bucket'),
+    util = require('util'),
     Promise = require('bluebird'),
     _ = require('lodash');
 
 var MODELS = {};
 
-function logError(err){
-  console.error('[friendly] ERROR:', err);
+function logError(){
+  var args = Array.prototype.slice.call(arguments);
+  if(args[0] instanceof Error) args[0] = util.inspect(args[0]);
+  args = args.join(' ');
+  console.error('[friendly] ERROR:', args);
 }
 
 function log(){
