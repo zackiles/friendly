@@ -187,9 +187,9 @@ function collapse(modelName, modelData){
 function getProviderPromise(model, child, cacheBucket){
   return new Promise(function(resolve, reject) {
     var childProviderKeyValue = _.isObject(child) ? child[model.key] : child;
-    log('Calling provider for model:', model.name, 'using key:', model.key, 'and value:', childProviderKeyValue);
     getModelProviderByKeyValue(model, childProviderKeyValue, cacheBucket)
     .then(function(results){
+      if(cacheBucket) cacheBucket.set(model.name, childProviderKeyValue, results);
       resolve(results);
     }).catch(function(err){
       // just skip over resolve failures.
@@ -203,10 +203,13 @@ function getProviderPromise(model, child, cacheBucket){
 function getModelProviderByKeyValue(model, keyValue, cacheBucket){
   if(cacheBucket){
     var cachedItem = cacheBucket.get(model.name, keyValue);
-    return cachedItem ? Promise.resolve(cachedItem) : model.provider(keyValue);
-  }else{
-    return model.provider(keyValue);
+    if(cachedItem) {
+      log('Object found in cache for:', model.name, 'using key:', model.key, 'and value:', keyValue);
+      return Promise.resolve(cachedItem);
+    }
   }
+  log('Object not found in cache. Calling provider for model:', model.name, 'using key:', model.key, 'and value:', keyValue);
+  return model.provider(keyValue);
 }
 
 function getChildKeysByModel(model){
