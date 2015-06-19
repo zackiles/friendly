@@ -26,6 +26,8 @@
   "homepage": "https://github.com/zackiles/friendly",
   "dependencies": {
     "bluebird": "^2.9.30",
+    "dot-object": "^0.11.0",
+    "dotject": "^0.6.6",
     "lodash": "^3.9.3"
   },
   "devDependencies": {

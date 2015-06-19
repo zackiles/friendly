@@ -1,8 +1,10 @@
 'use strict';
 
 var CacheBucket = require('./cache-bucket'),
-    util = require('util'),
+    dot = require('dot-object'),
+    dotject = require("dotject"),
     Promise = require('bluebird'),
+    util = require('util'),
     _ = require('lodash');
 
 var MODELS = {};
@@ -23,27 +25,29 @@ function log(){
 function getModel(name){
   if(!name || !_.isString(name)) throw Error('A model name was not provided.');
 
-  // check for dot-notation names like 'outer.inner' where 'inner' is the model name
-  if(_.includes(name, '.')){
-    var nameKeys = name.split('.');
-    name = nameKeys[nameKeys.length -1];
-    if(!name) throw Error('Model name ' + name + ' is invalid. Remove trailing period.');
-  }
+  log('Finding a matching model as name:', name);
 
   var model = MODELS[name];
   var foundAs = name;
+
+  // check for dot-notation names like 'outer.inner' where 'inner' is the model name.
+  if(_.includes(name, '.')){
+    var nestedKeys = name.split('.');
+    name = nestedKeys[nestedKeys.length -1];
+    model = MODELS[name];
+  }
 
   // if a model wasn't found by name, then check for matching aliases as well
   if(!model) {
     _.forEach(MODELS, function(m){
       if(_.indexOf(m.aliases, name) > -1) {
-        foundAs = name;
         model = m;
       }
     });
   }
 
-  if(!model) throw Error('A model with that name has not been configured.');
+  if(!model) throw Error('Unable to find a matching model for: ' + name);
+  log('Found a matching model:', model.name, 'as name:', foundAs);
 
   return {
     model: model,
@@ -65,8 +69,8 @@ function createModel(config){
       return [];
     }
   };
-
   if( !config.name ) throw Error('A model name was not provided.');
+  config.name = config.name.toLowerCase();
   if( MODELS[config.name] ) throw Error('A model with this name already exists.');
   if( !config.provider ) throw Error('A model provider was not provided.');
   if( !config.key ) throw Error('A model key was not provided.');
@@ -80,6 +84,7 @@ function createModel(config){
     aliases: sanitizeArray(config.aliases, 'aliases'),
     collapsables: sanitizeArray(config.collapsables, 'collapsables')
   };
+
 }
 
 function expandMany(modelName, data){
@@ -104,39 +109,43 @@ function expandMany(modelName, data){
 function expand(modelName, modelData, cacheBucket){
   if(!modelName) return Promise.reject(Error('No model name was provided to expand.'));
   if(!modelData) return Promise.reject(Error('No data was provided to expand.'));
-  // we can pass an array or a single object
+  // we can pass an array or a single object.
   if( _.isArray(modelData) ) return expandMany(modelName, modelData);
 
   var data = _.cloneDeep(modelData);
   var modelObj = getModel(modelName);
   var childrenKeys = getChildKeysByModel(modelObj.model);
 
-  log('Expanding model:', modelName, 'with keys:', childrenKeys.join());
+  // if accessing a model by dot-notation, add the dot-notation string to the list of children.
+  if(_.includes(modelObj.foundAs, '.')) childrenKeys.push(modelObj.foundAs);
 
-  _.forEach(childrenKeys, function(key){
-    var child = getChildByKey(data, key);
-      if(child){
+  log('Expanding', modelObj.foundAs, 'for model:', modelObj.model.name, 'with children:', childrenKeys.join());
 
-        var childModelObj = getModel(key);
-        var childProviderPromise;
+  return Promise.map(childrenKeys, function(key){
+    var child = dot.pick(key, data);
+    if(!child) return;
 
-        if(_.isArray(child)){
-          childProviderPromise = Promise.all(child.map(function(c){
-            return getProviderPromise(childModelObj.model, c, cacheBucket);
-          }))
-          .spread(function(){
-            return Array.prototype.slice.call(arguments);
-          });
+    var childModelObj = getModel(key);
+    var childProviderPromise;
 
-        }else{
-          childProviderPromise = getProviderPromise(childModelObj.model, child, cacheBucket);
-        }
+    if(_.isArray(child)){
+      return Promise.all(child.map(function(c){
+        return getProviderPromise(childModelObj.model, c, cacheBucket);
+      }))
+      .spread(function(){
+        var results = Array.prototype.slice.call(arguments);
+        data = replaceChildByKey(data, childModelObj.foundAs, results);
+      });
 
-        data = replaceChildByKey(data, childModelObj.foundAs, childProviderPromise);
-      }
+    }else{
+      return getProviderPromise(childModelObj.model, child, cacheBucket).then(function(results){
+        data = replaceChildByKey(data, childModelObj.foundAs, results);
+      });
+    }
+  }, {concurrency: 1})
+  .then(function(){
+    return data;
   });
-
-  return Promise.props(data);
 }
 
 function collapseMany(modelName, modelData){
@@ -148,7 +157,7 @@ function collapseMany(modelName, modelData){
 function collapse(modelName, modelData){
   if(!modelName) throw Error('No model name was provided to expand.');
   if(!modelData) throw Error('No data was provided to expand.');
-  // we can pass an array or a single object
+  // we can pass an array or a single object.
   if( _.isArray(modelData) ) return collapseMany(modelName, modelData);
 
   var data = _.cloneDeep(modelData);
@@ -157,7 +166,7 @@ function collapse(modelName, modelData){
 
   _.forEach(childrenKeys, function(key){
 
-    var child = getChildByKey(data, key);
+    var child = dot.pick(key, data);
       if(child){
         var childModelObj = getModel(key);
         var collapsedProperties = [childModelObj.model.key];
@@ -212,46 +221,19 @@ function getModelProviderByKeyValue(model, keyValue, cacheBucket){
 }
 
 function getChildKeysByModel(model){
-  var children = [];
-  children = children.concat(model.children);
+  var children = [].concat(model.children);
 
-  // look up any aliases the children might use
+  // look up any aliases the children might use.
   _.forEach(model.children, function(child){
-    var childModel = getModel(child).model;
-    children = children.concat(childModel.aliases);
+    children = children.concat(getModel(child).model.aliases);
   });
 
   return children;
 }
 
 function replaceChildByKey(obj, key, replace) {
-  // allows dot notation like 'inner.outer'
-  key = key.replace(/\[(\w+)\]/g, '.$1');
-  key = key.replace(/^\./, '');
-  var a = key.split('.');
-  for (var i = 0, n = a.length; i < n; ++i) {
-    var k = a[i];
-    if (k in obj) {
-        obj[k] = replace;
-    }
-  }
-  return obj;
-}
-
-function getChildByKey(obj, key) {
-  // allows dot notation like 'inner.outer'
-  key = key.replace(/\[(\w+)\]/g, '.$1');
-  key = key.replace(/^\./, '');
-  var a = key.split('.');
-  for (var i = 0, n = a.length; i < n; ++i) {
-    var k = a[i];
-    if (k in obj) {
-      obj = obj[k];
-    } else {
-      return;
-    }
-  }
-  return obj;
+  dot.remove(key, obj);
+  return dotject(key, obj, replace);
 }
 
 module.exports = {
