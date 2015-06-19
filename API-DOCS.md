@@ -15,7 +15,7 @@ The name of the model. This name is used for further calls toe expand & collapse
 Type: `String or String Array`
 Optional
 
-Extra names this object may appear as when used as a child. E.G., the model book may be aliased as books when appearing as a child in a 'library' model. Dot notation can also be used to represent this item found when nested in other objects, like 'bookCollection.book'.
+Extra names this object may appear as when used as a child. E.G., the model book may be aliased as books when appearing as a child in a 'library' model.
 
 #### provider
 Type: `Function`
@@ -30,9 +30,9 @@ The foreign key used to uniquely identify your model. In most cases this is 'id'
 #### children
 Type: `String or String Array`
 
-Children are the names of models that might appear as children of this model. When the children name might be an alias, only set the children models real name, and instead add aliases to the other models configuration. Dot notation can also be used to represent deep nested children, like 'bookCollection.book'.
+Children are the names of models that might appear as children of this model. Only use the child models real name. When the property of the child is stored in is different than it's models name, make sure to add that name as an alias to the child model as well.
 
 #### collapsables
 Type: `String or String Array`
 
-These are names of properties that will still be included even when this model is collapsed as a child. By default, all properties of children are collapsed except the property specified by key. Dot notation can also be used to represent items to collapse that are found when nested in other objects, like 'bookCollection.book'.
+These are names of properties that will still be included even when this model is collapsed as a child. By default, all properties of children are collapsed except the property specified by key.
