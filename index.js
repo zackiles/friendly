@@ -16,9 +16,7 @@ function logError(){
 }
 
 function log(){
-  if(process.env.NODE_ENV === 'development'){
-    console.log('[friendly] INFO:', Array.prototype.slice.call(arguments).join(' '));
-  }
+  console.log('[friendly] INFO:', Array.prototype.slice.call(arguments).join(' '));
 }
 
 function getModel(name){
@@ -73,7 +71,6 @@ function createModel(config){
 }
 
 function expandMany(modelName, modelData, path){
-  log('The data passed was an array, recursively resolving for model:', modelName);
   // create a per instance cache bucket so we don't call the provider
   // for the same object multiple times. could cause issues if this
   // data is later used to write with, but relatively low chance.
@@ -118,7 +115,7 @@ function expand(modelName, modelData, path, cacheBucket){
     if(!child) return;
     var childModel = getModel(key);
 
-    log('Found child:', childModel.name, 'for parent model:', model.name, 'in child:', child);
+    log('Found child:', childModel.name, 'in parent model:', model.name);
     if(_.isArray(child)){
       return Promise.all(child.map(function(c){
         return getProviderPromise(childModel, c, cacheBucket);
@@ -227,11 +224,9 @@ function getModelProviderByKeyValue(model, keyValue, cacheBucket){
   if(cacheBucket){
     var cachedItem = cacheBucket.get(model.name, keyValue);
     if(cachedItem) {
-      log('Object found in cache for:', model.name, 'using key:', model.key, 'and value:', keyValue);
       return Promise.resolve(cachedItem);
     }
   }
-  log('Object not found in cache. Calling provider for model:', model.name, 'using key:', model.key, 'and value:', keyValue);
   return model.provider(keyValue);
 }
 
