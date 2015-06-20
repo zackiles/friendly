@@ -103,7 +103,7 @@ describe('Models', function(){
   describe('#createModel()', function(){
 
     it('should create a model', function(done){
-      var model = friendly.getModel(bookModel.name).model;
+      var model = friendly.getModel(bookModel.name);
       model.should.have.property('name', bookModel.name);
       done();
     });
@@ -145,10 +145,10 @@ describe('Models', function(){
     it('should expand a nested object using dot-notation', function(done){
       var object = {
         inner: {
-          book : BOOKS[0].id
+          book : BOOKS[0]
         }
       };
-      friendly.expand('inner.book', object).then(function(expandedObject){
+      friendly.expand('book', object, 'inner.book').then(function(expandedObject){
         expandedObject.inner.book.should.have.property('name', BOOKS[0].name);
         done();
       })
@@ -158,10 +158,10 @@ describe('Models', function(){
     it('should expand a nested array of objects using dot-notation', function(done){
       var object = {
         inner: {
-          book : [BOOKS[0].id, BOOKS[1].id]
+          book : [BOOKS[0], BOOKS[1]]
         }
       };
-      friendly.expand('inner.book', object).then(function(expandedObject){
+      friendly.expand('book', object, 'inner.book').then(function(expandedObject){
         expandedObject.inner.book[0].should.have.property('name', BOOKS[0].name);
         expandedObject.inner.book[1].should.have.property('name', BOOKS[1].name);
         done();
