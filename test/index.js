@@ -318,6 +318,26 @@ describe('Methods', function(){
       .catch(done);
     });
 
+    it('should not collapse a child that has no key or collapsables configured', function(done){
+      friendly.createModel({
+        name: 'ncParent',
+        children: 'ncChild',
+        provider: function(){}
+      });
+      friendly.createModel({
+        name: 'ncChild',
+        provider: function(item){}
+      });
+      var collapsed = friendly.collapse('ncParent', {
+        name: 'ncparentStore',
+        employee:{
+          name: 'Bobby Hill',
+          age: 29
+        }
+      });
+      collapsed.employee.should.have.property('name', 'Bobby Hill');
+      done();
+    });
   });
 
 });

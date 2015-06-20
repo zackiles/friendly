@@ -177,22 +177,25 @@ function collapse(modelName, modelData, path){
     if(child){
 
       var childModel = getModel(key),
-          collapsedProperties = [childModel.key];
-
-      log('Collapsing model:', modelName, 'with the following collapsables:', collapsedProperties.join());
+          collapsedProperties = childModel.key ? [childModel.key] : [];
 
       // default is to always add the model key property, and then any
       // user configured collapsables for this child model.
       if(childModel.collapsables.length) collapsedProperties = collapsedProperties.concat(childModel.collapsables);
 
-      if( _.isArray(child) ){
-        var childArray = [];
-        _.forEach(child, function(c){
-          childArray.push(_.pick(c, collapsedProperties));
-        });
-        data = replaceChildByKey(data, key, childArray);
+      if(collapsedProperties){
+        log('Collapsing model:', childModel.name, 'with the following collapsables:', collapsedProperties.join());
+        if( _.isArray(child) ){
+          var childArray = [];
+          _.forEach(child, function(c){
+            childArray.push(_.pick(c, collapsedProperties));
+          });
+          data = replaceChildByKey(data, key, childArray);
+        }else{
+          data = replaceChildByKey(data, key, _.pick(child, collapsedProperties));
+        }
       }else{
-        data = replaceChildByKey(data, key, _.pick(child, collapsedProperties));
+        logError(Error('Child model: ' + childModel.name + ' is not collapsable. Must have either collapsables or a key configured. Skipping child.'));
       }
     }
   });
@@ -210,7 +213,7 @@ function getProviderPromise(model, child, cacheBucket){
     var providerParamater;
 
     if(model.key){
-      // if the model has a key configure extract the key value to pass to the provider
+      // if the model has a key configured extract the key value to pass to the provider.
       providerParamater = _.isObject(child) ? child[model.key] : child;
       if(cacheBucket){
         var cachedItem = cacheBucket.get(model.name, providerParamater);
@@ -219,7 +222,7 @@ function getProviderPromise(model, child, cacheBucket){
         }
       }
     }else{
-      // if the model doesn't use a key just pass the entire object to the provider
+      // if the model doesn't use a key just pass the entire object to the provider.
       providerParamater = child;
     }
 
