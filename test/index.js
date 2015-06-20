@@ -218,6 +218,40 @@ describe('Models', function(){
       .catch(done);
     });
 
+    it('should collapse a nested object using dot-notation', function(done){
+      var book = BOOKS[0];
+      book.author = AUTHORS[0];
+
+      var object = {
+        inner: {
+          book : book
+        }
+      };
+      var collapsed = friendly.collapse('book', object, 'inner.book');
+      collapsed.inner.book.author.should.not.have.property('name');
+      collapsed.inner.book.author.should.have.property(authorModel.key, AUTHORS[0][authorModel.key]);
+      done();
+    });
+
+    it('should collapse a nested array of objects using dot-notation', function(done){
+      var book1 = BOOKS[0];
+      book1.author = AUTHORS[0];
+      var book2 = BOOKS[1];
+      book2.author = AUTHORS[1];
+
+      var object = {
+        inner: {
+          books : [book1, book2]
+        }
+      };
+      var collapsed = friendly.collapse('book', object, 'inner.books');
+      collapsed.inner.books[0].author.should.not.have.property('name');
+      collapsed.inner.books[0].author.should.have.property(authorModel.key, AUTHORS[0][authorModel.key]);
+      collapsed.inner.books[1].author.should.not.have.property('name');
+      collapsed.inner.books[1].author.should.have.property(authorModel.key, AUTHORS[1][authorModel.key]);
+      done();
+    });
+
     it('should collapse multiple types of children in one object', function(done){
       friendly.expand('book', BOOKS[3]).then(function(expandedObject){
         var collapsed = friendly.collapse('book', expandedObject);

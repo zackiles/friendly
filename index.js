@@ -144,30 +144,37 @@ function expand(modelName, modelData, path, cacheBucket){
   });
 }
 
-function collapseMany(modelName, modelData){
-  return _.map(modelData, function(i){
-    return collapse(modelName, i);
+function collapseMany(modelName, modelData, path){
+  var data = path ? dot.pick(path, modelData) : _.cloneDeep(modelData);
+
+  var results = _.map(data, function(m){
+    return collapse(modelName, m);
   });
+
+  if(path){
+    return replaceChildByKey(_.cloneDeep(modelData), path, results);
+  }else{
+    return results;
+  }
 }
 
 function collapse(modelName, modelData, path){
   if(!modelName) throw Error('No model name was provided to expand.');
   if(!modelData) throw Error('No data was provided to expand.');
-  // we can pass an array or a single object.
-  if( _.isArray(modelData) ) return collapseMany(modelName, modelData);
-
 
   var model = getModel(modelName),
       childrenKeys = getChildKeysByModel(model),
-      data;
+      data = path ? dot.pick(path, modelData) : _.cloneDeep(modelData)
 
   if(path){
-    data = dot.pick(path, modelData);
     log('Expanding model:', model.name, 'at path:', path, 'with keys:', childrenKeys.join());
   }else{
-    data =_.cloneDeep(modelData);
     log('Expanding model:', model.name, 'with keys:', childrenKeys.join());
   }
+
+  // we can pass an array or a single object.
+  if( _.isArray(data) ) return collapseMany(model.name, modelData, path);
+
   _.forEach(childrenKeys, function(key){
     var child = dot.pick(key, data);
     if(child){
