@@ -103,10 +103,17 @@ describe('Models', function(){
   describe('#createModel()', function(){
 
     it('should create a model', function(done){
-      var model = friendly.getModel(bookModel.name);
+       var model = friendly.getModel(bookModel.name);
       model.should.have.property('name', bookModel.name);
       done();
     });
+
+    it('model names should be case insensitive', function(done){
+      var model = friendly.getModel(bookModel.name.toUpperCase());
+      model.should.have.property('name', bookModel.name);
+      done();
+    });
+
 
     it('should fail creating a model without proper configuration', function(done){
       (function(){friendly.createModel({children: []});}).should.throw();
