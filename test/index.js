@@ -127,6 +127,16 @@ describe('Methods', function(){
       done();
     });
 
+    it('should create a model without a key', function(done){
+      var model = _.cloneDeep(bookModel);
+      delete model.key
+      model.name = 'modelwithnokey';
+      friendly.createModel(model);
+      var newModel = friendly.getModel(model.name);
+      newModel.should.have.property('name', model.name);
+      newModel.should.not.have.property('key');
+      done();
+    });
 
     it('should fail creating a model without proper configuration', function(done){
       (function(){friendly.createModel({children: []});}).should.throw();
@@ -160,6 +170,27 @@ describe('Methods', function(){
         done();
       })
       .catch(done);
+    });
+
+    it('should expand an object with a key', function(done){
+      friendly.createModel({
+        name: 'store',
+        children: 'employee',
+        provider: function(){}
+      });
+      friendly.createModel({
+        name: 'employee',
+        provider: function(item){
+          return new Promise(function(resolve, reject) {
+            item.should.be.equal('24');
+            resolve({name: 'Mike Smith'});
+          });
+        }
+      });
+      friendly.expand('store', {employee:'24'}).then(function(results){
+        results.employee.should.have.property('name', 'Mike Smith');
+        done();
+      }).catch(done);
     });
 
     it('should expand a nested object using dot-notation', function(done){

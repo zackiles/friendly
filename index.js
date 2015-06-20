@@ -47,7 +47,7 @@ function createModel(config){
       });
       return _.uniq(arr);
     }else if( _.isString(arr) ){
-      return _.uniq([arr]);
+      return [arr];
     }else{
       return [];
     }
@@ -56,17 +56,17 @@ function createModel(config){
   config.name = config.name.toLowerCase();
   if( MODELS[config.name] ) throw Error('A model with this name already exists.');
   if( !config.provider ) throw Error('A model provider was not provided.');
-  if( !config.key ) throw Error('A model key was not provided.');
   if( !_.isFunction(config.provider) ) throw Error('A model provider must be a function.');
 
   MODELS[config.name] = {
     name: config.name,
     provider: config.provider,
     children: sanitizeArray(config.children, 'children'),
-    key: config.key,
     aliases: sanitizeArray(config.aliases, 'aliases'),
     collapsables: sanitizeArray(config.collapsables, 'collapsables')
   };
+
+  if(config.key) MODELS[config.name].key = config.key;
 
 }
 
@@ -161,7 +161,7 @@ function collapse(modelName, modelData, path){
 
   var model = getModel(modelName),
       childrenKeys = getChildKeysByModel(model),
-      data = path ? dot.pick(path, modelData) : _.cloneDeep(modelData)
+      data = path ? dot.pick(path, modelData) : _.cloneDeep(modelData);
 
   if(path){
     log('Expanding model:', model.name, 'at path:', path, 'with keys:', childrenKeys.join());
@@ -206,10 +206,25 @@ function collapse(modelName, modelData, path){
 
 function getProviderPromise(model, child, cacheBucket){
   return new Promise(function(resolve, reject) {
-    var childProviderKeyValue = _.isObject(child) ? child[model.key] : child;
-    getModelProviderByKeyValue(model, childProviderKeyValue, cacheBucket)
-    .then(function(results){
-      if(cacheBucket) cacheBucket.add(model.name, childProviderKeyValue, results);
+
+    var providerParamater;
+
+    if(model.key){
+      // if the model has a key configure extract the key value to pass to the provider
+      providerParamater = _.isObject(child) ? child[model.key] : child;
+      if(cacheBucket){
+        var cachedItem = cacheBucket.get(model.name, providerParamater);
+        if(cachedItem) {
+          return Promise.resolve(cachedItem);
+        }
+      }
+    }else{
+      // if the model doesn't use a key just pass the entire object to the provider
+      providerParamater = child;
+    }
+
+    model.provider(providerParamater).then(function(results){
+      if(cacheBucket && model.key) cacheBucket.add(model.name, providerParamater, results);
       resolve(results);
     }).catch(function(err){
       // just skip over resolve failures.
@@ -218,16 +233,6 @@ function getProviderPromise(model, child, cacheBucket){
       resolve(child);
     });
   });
-}
-
-function getModelProviderByKeyValue(model, keyValue, cacheBucket){
-  if(cacheBucket){
-    var cachedItem = cacheBucket.get(model.name, keyValue);
-    if(cachedItem) {
-      return Promise.resolve(cachedItem);
-    }
-  }
-  return model.provider(keyValue);
 }
 
 function getChildKeysByModel(model){
