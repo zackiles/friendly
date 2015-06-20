@@ -188,40 +188,37 @@ var book = {
 };
 ```
 ### How many ways can I call a model name?
-3 ways. Friendly methods like expand and collapse take a model name as the first paramater, which is very flexible. Besides just using the default name you set you can also:
+2 ways.
 
-- Call it by the name you set in it's model.
-- Call it by one of it's aliases, so 'book' can be called by 'books' or 'bookCollection' if you have those as aliases.
-- Call it by dot notation when it's nested in an object you don't have a model for. So you can use 'someObject.book', and the model will be detected from the name after the last period (which can also be it's alias). You can also deep nest, and do stuff like 'outer.inner.someObject.book'.
+- Call it by the name you set in it's model (case insensitive).
+- Call it by one of it's aliases, so 'book' can be called by 'books' or 'bookCollection' if you have those as aliases (case insensitive).
 
 
 ### What about deep nested children?
 
-Friendly accepts dot notation in replacement of the model name on any method calls. So instead of calling something like ***friendly.expand('mymodel')*** you can call ***friendly.expand('outer.mymodel')*** instead. Friendly will use the name after the last period in the string as the model name, in this case it would be 'mymodel'. As long as that name matches a model name, it can be nested in any outer object you wish, even ones without models configured. Here is an example of expanding using dot notation (you can collapse as well):
+Expand/Collapse accepts an optional 'path' as it's third argument. Dot notation can also be used - so instead of calling something like ***friendly.expand('mymodel')*** you can call ***friendly.expand('outer.mymodel')*** instead.
 
 ``` js
-
-/** Assuming we have a book model configured, and a book that looks like this
-{
-  id: '203',
-  name: 'Code Complete 2'
-};
-*/
-
 var object = {
   inner: {
-    book: '203'
+    book: {
+      name: 'Code Complete 2',
+      author: '19237'
+    }
   }
 };
 
-friendly.expand('inner.book', object).then(function(expandedBook){
+friendly.expand('book', object, 'inner.book').then(function(expandedBook){
   console.log(expandedBook);
-  /** prints (note we don't need a model configured named 'inner' at all)
+  /** prints
     {
       inner: {
         book: {
-          id: '203',
-          name: 'Code Complete 2'
+          name: 'Code Complete 2',
+          author: {
+            id: '19237',
+            name: 'Steve McConnel'
+          }
         }
       }
     }

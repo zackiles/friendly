@@ -24,12 +24,12 @@ function log(){
 function getModel(name){
   if(!name || !_.isString(name)) throw Error('A model name was not provided.');
 
-  var model = MODELS[name];
+  var model = MODELS[name.toLowerCase()];
 
   // if a model wasn't found by name, then check for matching aliases as well
   if(!model) {
     _.forEach(MODELS, function(m){
-      if(_.indexOf(m.aliases, name) > -1) {
+      if(_.indexOf(m.aliases, name.toLowerCase()) > -1) {
         model = m;
       }
     });
