@@ -98,7 +98,20 @@ var publisherModel = {
 };
 friendly.createModel(publisherModel);
 
-describe('Models', function(){
+describe('Methods', function(){
+
+  describe('#setConfig()', function(){
+    it('should update set the configuration', function(done){
+      var config = {
+        logErrors: false,
+        logDebug: false
+      };
+      var results = friendly.setConfig(config);
+      results.should.have.property('logErrors', false);
+      results.should.have.property('logDebug', false);
+      done();
+    });
+  });
 
   describe('#createModel()', function(){
 

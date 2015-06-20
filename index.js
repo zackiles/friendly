@@ -8,15 +8,15 @@ var CacheBucket = require('./cache-bucket'),
 
 var MODELS = {};
 
-function logError(){
-  var args = Array.prototype.slice.call(arguments);
-  if(args[0] instanceof Error) args[0] = args[0].stack;
-  args = args.join(' ');
-  console.error('[friendly] ERROR:', args);
-}
+var CONFIG = {
+  logErrors: true,
+  logDebug: false
+};
 
-function log(){
-  console.log('[friendly] INFO:', Array.prototype.slice.call(arguments).join(' '));
+function setConfig(options){
+  if(!options) return;
+  CONFIG = _.assign({}, CONFIG, options);
+  return CONFIG;
 }
 
 function getModel(name){
@@ -246,9 +246,23 @@ function replaceChildByKey(obj, key, replace) {
   return dotject(key, obj, replace);
 }
 
+function logError(){
+  if(CONFIG.logErrors){
+    var args = Array.prototype.slice.call(arguments);
+    if(args[0] instanceof Error) args[0] = args[0].stack;
+    args = args.join(' ');
+    console.error('[friendly] ERROR:', args);
+  }
+}
+
+function log(){
+  if(CONFIG.logDebug) console.log('[friendly] INFO:', Array.prototype.slice.call(arguments).join(' '));
+}
+
 module.exports = {
   createModel: createModel,
   getModel: getModel,
   expand: expand,
-  collapse: collapse
+  collapse: collapse,
+  setConfig: setConfig
 };
