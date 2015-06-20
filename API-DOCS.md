@@ -20,12 +20,13 @@ Extra names this object may appear as when used as a child. E.G., the model book
 #### provider
 Type: `Function`
 
-A function which takes the value of the foreign key (usually an id) and returns the full document from it's source. This function must return a promise that resolves the document.
+A function which takes the value of the property specififed by key (or the full object if no key is configured) and returns the full document from it's source. This function must return a promise that resolves the document.
 
 #### key
 Type: `Function`
+Optional
 
-The foreign key used to uniquely identify your model. In most cases this is 'id'. This property should be present in all instances of a model.
+The foreign key used to uniquely identify your model. In most cases this is 'id'. If no key is configured the full object will be passed to the provider on calls to expand.
 
 #### children
 Type: `String or String Array`
@@ -35,4 +36,4 @@ Children are the names of models that might appear as children of this model. On
 #### collapsables
 Type: `String or String Array`
 
-These are names of properties that will still be included even when this model is collapsed as a child. By default, all properties of children are collapsed except the property specified by key.
+These are names of properties that will still be included even when this model is collapsed as a child. By default, all properties of children are collapsed except the property specified by key if it was configured.

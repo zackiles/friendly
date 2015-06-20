@@ -57,9 +57,9 @@ Book: {
 First configure your models for later use. Configuration takes a name, provider, children, and optional collapsables.
 
 - name => The name of your model. This is also the property name of the object when nested as a child object in a parent.
-- key => Is the foreign key, or property name used to resolve a unique object. Any instances of this object a s achild or parent must contain this property.
-- children (optional) => Is an array or a single name of a model.
-- provider => Is a function which is passed the foreign key, which returns a promise that resolves the full child object.
+- key => (optional) the name of a property in this object that is unique, such as 'id'. This will be passed as the argument to your provider during expansion. If no key is configured, then the full object is passed to the provider.
+- children (optional) => The model names of any children that might be nested in this model. If the childs model name is different than the property name it might be appear as, such as the model 'book' appearing as 'books', then configure 'books' as an alias in the 'book' model.
+- provider => Is a promise returning function which is passed the key (or full object if no key is configured). The provider is called when this model appears as a child in another object and must be expanded.
 - collapsables (optional) => An array of property names to include from this object when this object is included as a child and the parent object calls the 'collapse' method. By default the property specified by 'key' is always included, and all other properties are removed.
 
 So given a Book model that has an id property with a nested author child, our configure method call would look like this:
