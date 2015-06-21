@@ -1,7 +1,7 @@
 # Friendly ORM
 [![npm version](https://badge.fury.io/js/friendly.svg)](http://badge.fury.io/js/friendly)
 
-A no-frills ORM that wraps your data. Make relationships, link data, and build streams with plain old javascript objects.
+A no-frills ORM that wraps your data and helps you compose objects. Define relationships between models, expand and collapse their properties, build streams and link data from multiple sources.
 
 ## Installation
 
