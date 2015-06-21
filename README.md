@@ -174,6 +174,8 @@ var book = {
   ]
 };
 
+```
+
 ### What about models where I don't want to set a key?
 
 - When calling ***expand*** on a parent object, if it's children don't have keys set for their model, then the entire object will be passed to the provider.
