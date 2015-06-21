@@ -52,7 +52,7 @@ Book: {
 }
 ```
 
-### Examples?
+### Overview
 
 First configure your models for later use. Configuration takes a name, provider, children, and optional collapsables.
 
@@ -141,7 +141,7 @@ friendly.expand('book', exampleBook).then(function(expandedBook){
 
 ### How many ways can I represent a child object?
 
-5 ways. Pay attention to how the author object changes in these examples. These are assuming you've created both a book and author model, and the author models key is set to 'id'.
+4 ways. Pay attention to how the author object changes in these examples. These are assuming you've created both a book and author model, and the author models key is set to 'id'.
 
 ``` js
 
@@ -173,30 +173,16 @@ var book = {
     { id: '2462' },
   ]
 };
-// #5 - author in a an unknown nested property.
-// This allows you to call methods with dot notation like 'randomObject.author'
-// (see 'What about deep nested children?' below)
-  id: '203',
-  name: 'Code Complete 2',
-  randomObject: {
-    name: 'something',
-    author: [
-      { id: '19237' },
-      { id: '2462' }
-    ]
-  }
-};
-```
-### How many ways can I call a model name?
-2 ways.
 
-- Call it by the name you set in it's model (case insensitive).
-- Call it by one of it's aliases, so 'book' can be called by 'books' or 'bookCollection' if you have those as aliases (case insensitive).
+### What about models where I don't want to set a key?
+
+- When calling ***expand*** on a parent object, if it's children don't have keys set for their model, then the entire object will be passed to the provider.
+- When calling ***collapse*** on a parent object, if it's children don't have keys set and it has no collapsables set, then the child will be skipped and left untouched.
 
 
 ### What about deep nested children?
 
-Expand/Collapse accepts an optional 'path' as it's third argument. Dot notation can also be used - so instead of calling something like ***friendly.expand('mymodel')*** you can call ***friendly.expand('outer.mymodel')*** instead.
+Expand/Collapse accepts an optional 'path' as it's third argument. Dot notation can also be used. This is essentially a utility function.
 
 ``` js
 var object = {
