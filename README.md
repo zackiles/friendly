@@ -1,7 +1,7 @@
 # Friendly ORM
 [![npm version](https://badge.fury.io/js/friendly.svg)](http://badge.fury.io/js/friendly)
 
-Make relationships, link data, and build streams with plain old javascript objects. A no-frills ORM without database drivers.
+A no-frills ORM that wraps your data. Make relationships, link data, and build streams with plain old javascript objects.
 
 ## Installation
 
@@ -179,7 +179,7 @@ var book = {
 ### What about models where I don't want to set a key?
 
 - When calling ***expand*** on a parent object, if it's children don't have keys set for their model, then the entire object will be passed to the provider.
-- When calling ***collapse*** on a parent object, if it's children don't have keys set and it has no collapsables set, then the child will be skipped and left untouched.
+- When calling ***collapse*** on a parent object, if it's children models don't have keys AND collapsables set, then the child will be skipped and left untouched.
 
 
 ### What about deep nested children?

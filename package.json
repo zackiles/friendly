@@ -1,7 +1,7 @@
 {
   "name": "friendly",
   "version": "0.0.17",
-  "description": "Make relationships, link data, and build streams with plain old javascript objects. A no-frills ORM without database drivers.",
+  "description": "A no-frills ORM that wraps your data. Make relationships, link data, and build streams with plain old javascript objects.",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
