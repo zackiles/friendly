@@ -15,7 +15,6 @@ var CONFIG = {
 function setConfig(options){
   if(!options) return;
   CONFIG = _.assign({}, CONFIG, options);
-  return CONFIG;
 }
 
 function getModel(name){
