@@ -1,7 +1,6 @@
 'use strict';
 
-var CacheBucket = require('./cache-bucket'),
-    dot = require('dot-object'),
+var dot = require('dot-object'),
     dotject = require("dotject"),
     Promise = require('bluebird'),
     _ = require('lodash');
@@ -71,14 +70,10 @@ function createModel(config){
 }
 
 function expandMany(modelName, modelData, path){
-  // create a per instance cache bucket so we don't call the provider
-  // for the same object multiple times. could cause issues if this
-  // data is later used to write with, but relatively low chance.
-  var cacheBucket = new CacheBucket(),
-      data = path ? dot.pick(path, modelData) : _.cloneDeep(modelData);
+  var data = path ? dot.pick(path, modelData) : _.cloneDeep(modelData);
 
   var promises = _.map(data, function(d){
-    return expand(modelName, d, null, cacheBucket);
+    return expand(modelName, d);
   });
 
   return Promise.all(promises).spread(function(){
@@ -92,7 +87,7 @@ function expandMany(modelName, modelData, path){
   });
 }
 
-function expand(modelName, modelData, path, cacheBucket){
+function expand(modelName, modelData, path){
   if(!modelName) throw Error('No model name was provided to expand.');
   if(!modelData) throw Error('No data was provided to expand.');
 
@@ -118,7 +113,7 @@ function expand(modelName, modelData, path, cacheBucket){
     log('Found child:', childModel.name, 'in parent model:', model.name);
     if(_.isArray(child)){
       return Promise.all(child.map(function(c){
-        return getProviderPromise(childModel, c, cacheBucket);
+        return getProviderPromise(childModel, c);
       }))
       .spread(function(){
         var results = Array.prototype.slice.call(arguments);
@@ -126,7 +121,7 @@ function expand(modelName, modelData, path, cacheBucket){
       });
 
     }else{
-      return getProviderPromise(childModel, child, cacheBucket).then(function(results){
+      return getProviderPromise(childModel, child).then(function(results){
         data = replaceChildByKey(data, key, results);
       });
     }
@@ -207,7 +202,7 @@ function collapse(modelName, modelData, path){
   }
 }
 
-function getProviderPromise(model, child, cacheBucket){
+function getProviderPromise(model, child){
   return new Promise(function(resolve, reject) {
 
     var providerParamater;
@@ -215,19 +210,12 @@ function getProviderPromise(model, child, cacheBucket){
     if(model.key){
       // if the model has a key configured extract the key value to pass to the provider.
       providerParamater = _.isObject(child) ? child[model.key] : child;
-      if(cacheBucket){
-        var cachedItem = cacheBucket.get(model.name, providerParamater);
-        if(cachedItem) {
-          return Promise.resolve(cachedItem);
-        }
-      }
     }else{
       // if the model doesn't use a key just pass the entire object to the provider.
       providerParamater = child;
     }
 
     model.provider(providerParamater).then(function(results){
-      if(cacheBucket && model.key) cacheBucket.add(model.name, providerParamater, results);
       resolve(results);
     }).catch(function(err){
       // just skip over resolve failures.

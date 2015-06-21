@@ -230,8 +230,6 @@ friendly.expand('book', object, 'inner.book').then(function(expandedBook){
 
 ### Gotcha's
 
-- If at any time a child object can't be resolved during the expand method, it will just be skipped without warnings or errors.
-- When passing an array of parent objects to expand, the first time a child is resolved it is cached incase another object in the array also uses the same child. The cache only lasts per call to expand, but this may provide unintended effects if a document changes during the call to expand 99% of the time this won't be an issue at all.
+- During calls to expand, if a childs provider fails to resolve then the child will be skipped.
 - There is no deep recursion to child objects. That is, if the child object also contains it's own children then will not be resolved. To accomplish this, you can manually add an expand call to your child's provider.
 - Friendly is currently global and createModel can only be called once per model name per application instance.
-- Collapsing will always transform the child into a single object with the foreign key property, and any optional collapsables you've set.
