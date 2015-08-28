@@ -219,7 +219,9 @@ function getProviderPromise(model, child){
     }).catch(function(err){
       // just skip over resolve failures.
       logError(err);
-      logError('Provider for model:', model.name, 'was unable to resolve an object for child:', child, 'Skiping child.');
+      var item = _.isObject(child) ? JSON.stringify(child) : item;
+      logError('Provider for model:', model.name, 'was unable to resolve an object for child:', item);
+      logError('Skiping child.');
       resolve(child);
     });
   });
