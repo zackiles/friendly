@@ -14,7 +14,7 @@ var CONFIG = {
 
 function setConfig(options){
   if(!options) return;
-  CONFIG = _.assign({}, CONFIG, options);
+  return CONFIG = _.assign({}, CONFIG, options);
 }
 
 function getModel(name){
@@ -22,7 +22,7 @@ function getModel(name){
 
   var model = MODELS[name.toLowerCase()];
 
-  // if a model wasn't found by name, then check for matching aliases as well
+  // if a model wasn't found by name, then check for matching aliases as well.
   if(!model) {
     _.forEach(MODELS, function(m){
       if(_.indexOf(m.aliases, name.toLowerCase()) > -1) {
@@ -87,6 +87,13 @@ function expandMany(modelName, modelData, path){
 }
 
 function expand(modelName, modelData, path){
+  // allow first argument to be options object.
+  if(_.isPlainObject(modelName)){
+    modelData = modelName.data;
+    path = modelName.path;
+    modelName = modelName.model;
+  }
+
   if(!modelName) throw Error('No model name was provided to expand.');
   if(!modelData) throw Error('No data was provided to expand.');
 
@@ -150,6 +157,13 @@ function collapseMany(modelName, modelData, path){
 }
 
 function collapse(modelName, modelData, path){
+  // allow first argument to be options object.
+  if(_.isPlainObject(modelName)){
+    modelData = modelName.data;
+    path = modelName.path;
+    modelName = modelName.model;
+  }
+
   if(!modelName) throw Error('No model name was provided to expand.');
   if(!modelData) throw Error('No data was provided to expand.');
 

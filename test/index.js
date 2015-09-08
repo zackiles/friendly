@@ -101,7 +101,7 @@ friendly.createModel(publisherModel);
 describe('Methods', function(){
 
   describe('#setConfig()', function(){
-    it('should update set the configuration', function(done){
+    it('updates the configuration', function(done){
       var config = {
         logErrors: false,
         logDebug: false
@@ -115,19 +115,19 @@ describe('Methods', function(){
 
   describe('#createModel()', function(){
 
-    it('should create a model', function(done){
+    it('creates a model', function(done){
        var model = friendly.getModel(bookModel.name);
       model.should.have.property('name', bookModel.name);
       done();
     });
 
-    it('model names should be case insensitive', function(done){
+    it('model names are case insensitive', function(done){
       var model = friendly.getModel(bookModel.name.toUpperCase());
       model.should.have.property('name', bookModel.name);
       done();
     });
 
-    it('should create a model without a key', function(done){
+    it('creates a model without a key', function(done){
       var model = _.cloneDeep(bookModel);
       delete model.key
       model.name = 'modelwithnokey';
@@ -138,12 +138,12 @@ describe('Methods', function(){
       done();
     });
 
-    it('should fail creating a model without proper configuration', function(done){
+    it('fail creating a model without proper configuration', function(done){
       (function(){friendly.createModel({children: []});}).should.throw();
       done();
     });
 
-    it('should fail creating a model twice', function(done){
+    it('fail creating a model twice', function(done){
       (function(){
         friendly.createModel(publisherModel);
       }).should.throw();
@@ -154,7 +154,7 @@ describe('Methods', function(){
 
   describe('#expand()', function(){
 
-    it('should expand an object', function(done){
+    it('expands an object', function(done){
       friendly.expand('book', BOOKS[0]).then(function(expandedObject){
         expandedObject.author.should.have.property('name', AUTHORS[0].name);
         done();
@@ -162,7 +162,15 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should expand an array of objects', function(done){
+    it('expands an object using an options object', function(done){
+      friendly.expand({model: 'book', data: BOOKS[0]}).then(function(expandedObject){
+        expandedObject.author.should.have.property('name', AUTHORS[0].name);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('expands an array of objects', function(done){
       var models = [ BOOKS[0], BOOKS[1] ];
       friendly.expand('book', models).then(function(expandedObjects){
         expandedObjects[0].author.should.have.property('name', AUTHORS[0].name);
@@ -172,7 +180,7 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should expand an object with a key', function(done){
+    it('expands an object with a key', function(done){
       friendly.createModel({
         name: 'store',
         children: 'employee',
@@ -193,7 +201,7 @@ describe('Methods', function(){
       }).catch(done);
     });
 
-    it('should expand a nested object using dot-notation', function(done){
+    it('expands a nested object using a path argument', function(done){
       var object = {
         inner: {
           book : BOOKS[0]
@@ -206,7 +214,7 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should expand a nested array of objects using dot-notation', function(done){
+    it('expands a nested array of objects using a path argument', function(done){
       var object = {
         inner: {
           book : [BOOKS[0], BOOKS[1]]
@@ -220,7 +228,7 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should expand an array of children keys', function(done){
+    it('expands an array of children keys', function(done){
       friendly.expand('book', BOOKS[2]).then(function(expandedObject){
         expandedObject.should.have.property('author').with.lengthOf(BOOKS[2].author.length);
         var author = _.find(AUTHORS, {id: expandedObject.author[0].id});
@@ -230,7 +238,7 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should expand multiple children in one object', function(done){
+    it('expands multiple children in one object', function(done){
       friendly.expand('book', BOOKS[3]).then(function(expandedObject){
         expandedObject.author.should.have.property('name', AUTHORS[1].name);
         expandedObject.publisher.should.have.property('name', PUBLISHERS[0].name);
@@ -239,7 +247,7 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should expand an array of children with aliased keys', function(done){
+    it('expands an array of children with aliased keys', function(done){
       friendly.expand('book', BOOKS[4]).then(function(expandedObject){
         expandedObject.authors[0].should.have.property('name', AUTHORS[0].name);
         expandedObject.authors[1].should.have.property('name', AUTHORS[1].name);
@@ -252,7 +260,7 @@ describe('Methods', function(){
 
   describe('#collapse()', function(){
 
-    it('should collapse a single child object to just a key', function(done){
+    it('collapses a single child object', function(done){
       friendly.expand('book', BOOKS[0]).then(function(expandedObject){
         var collapsed = friendly.collapse('book', expandedObject);
         collapsed.author.should.not.have.property('name');
@@ -262,7 +270,17 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should collapse a nested object using dot-notation', function(done){
+    it('collapses with an options object a single child object', function(done){
+      friendly.expand({model: 'book', data: BOOKS[0]}).then(function(expandedObject){
+        var collapsed = friendly.collapse('book', expandedObject);
+        collapsed.author.should.not.have.property('name');
+        collapsed.author.should.have.property(authorModel.key, AUTHORS[0][authorModel.key]);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('collapses a nested object using a path argument', function(done){
       var book = BOOKS[0];
       book.author = AUTHORS[0];
 
@@ -277,7 +295,7 @@ describe('Methods', function(){
       done();
     });
 
-    it('should collapse a nested array of objects using dot-notation', function(done){
+    it('collapses a nested array of objects using a path argument', function(done){
       var book1 = BOOKS[0];
       book1.author = AUTHORS[0];
       var book2 = BOOKS[1];
@@ -296,7 +314,7 @@ describe('Methods', function(){
       done();
     });
 
-    it('should collapse multiple types of children in one object', function(done){
+    it('collapses multiple types of children in one object', function(done){
       friendly.expand('book', BOOKS[3]).then(function(expandedObject){
         var collapsed = friendly.collapse('book', expandedObject);
         collapsed.author.should.not.have.property('name');
@@ -308,7 +326,7 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should collapse a collection of objects with aliased foreign keys', function(done){
+    it('collapses a collection of objects with aliased foreign keys', function(done){
       friendly.expand('book', BOOKS[4]).then(function(expandedObject){
         var collapsed = friendly.collapse('book', expandedObject);
         collapsed.authors[0].should.not.have.property('name', AUTHORS[0].name);
@@ -318,7 +336,7 @@ describe('Methods', function(){
       .catch(done);
     });
 
-    it('should not collapse a child that has no key or collapsables configured', function(done){
+    it('does not collapse a child that has no key or collapsables configured', function(done){
       friendly.createModel({
         name: 'ncParent',
         children: 'ncChild',

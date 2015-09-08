@@ -1,6 +1,6 @@
 {
   "name": "friendly",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "A no-frills ORM that wraps your data and helps you compose objects. Define relationships between models, expand and collapse their properties, build streams and link data from multiple sources.",
   "main": "index.js",
   "scripts": {
@@ -25,13 +25,13 @@
   },
   "homepage": "https://github.com/zackiles/friendly",
   "dependencies": {
-    "bluebird": "^2.9.30",
-    "dot-object": "^0.11.0",
-    "dotject": "^0.6.6",
-    "lodash": "^3.9.3"
+    "bluebird": "~2.9.34",
+    "dot-object": "~1.1.0",
+    "dotject": "~0.6.6",
+    "lodash": "~3.10.1"
   },
   "devDependencies": {
-    "mocha": "^2.2.5",
-    "should": "^7.0.1"
+    "mocha": "~2.3.2",
+    "should": "~7.1.0"
   }
 }
