@@ -127,6 +127,13 @@ describe('Methods', function(){
       done();
     });
 
+    it('model names is added to it\'s own aliases', function(done){
+      var model = friendly.getModel(bookModel.name.toUpperCase());
+      model.should.have.property('aliases');
+      model.aliases.should.containEql(model.name);
+      done();
+    });
+
     it('creates a model without a key', function(done){
       var model = _.cloneDeep(bookModel);
       delete model.key

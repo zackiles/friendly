@@ -51,7 +51,10 @@ function createModel(config){
     }
   };
   if( !config.name ) throw Error('A model name was not provided.');
+
+  // Model names are case-insensitive.
   config.name = config.name.toLowerCase();
+
   if( MODELS[config.name] ) throw Error('A model with this name already exists.');
   if( !config.provider ) throw Error('A model provider was not provided.');
   if( !_.isFunction(config.provider) ) throw Error('A model provider must be a function.');
@@ -64,6 +67,8 @@ function createModel(config){
     collapsables: sanitizeArray(config.collapsables, 'collapsables')
   };
 
+  // add the model name itself to it's aliases
+  MODELS[config.name].aliases.push(config.name);
   if(config.key) MODELS[config.name].key = config.key;
 
 }
